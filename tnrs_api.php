@@ -172,8 +172,29 @@ header('Content-type: application/json');echo "\r\n\$data_dir_tmp: " . $data_dir
 die();
 */
 
-// Import the results file (tab-delimitted)
+// Import the results file (tab-delimitted) to array
 $results_array = load_tabbed_file($results_file, true);
+
+// Convert to simple indexed array
+$results_array = array_values($results_array); 	
+
+// Fix header for parse-only results
+if ($mode=="parse") {
+	$results_array[0]=array(
+	'Name_submitted',
+	'Family',
+	'Genus',
+	'Specific_epithet',
+	'Infraspecific_rank',
+	'Infraspecific_epithet',
+	'Infraspecific_rank_2',
+	'Infraspecific_epithet_2',
+	'Author',
+	'Annotations',
+	'Unmatched_terms'
+	);
+}
+
 $results_json = json_encode($results_array);
 
 ///////////////////////////////////
