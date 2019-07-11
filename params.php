@@ -4,7 +4,7 @@
 // API parameters
 /////////////////////////////////////////////////
 
-$MAX_ROWS=10000;	// Maximum permitted input rows per request
+$MAX_ROWS=1000;	// Maximum permitted input rows per request
 					// For no limit, set to 0
 
 //////////////////////////////////////////////////
