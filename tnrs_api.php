@@ -100,6 +100,18 @@ $data_arr = $input_array['data'];
 include $APP_DIR . "validate_options.php";
 
 ///////////////////////////////////////////
+// Reset selected options for compatibility 
+// with TNRSbatch command line syntax
+///////////////////////////////////////////
+
+// Processing mode
+if ( $mode == "parse" ) {
+	$mode2 = "-mode parse";	// Parse-only mode
+} else {
+	$mode2 = ""; 		// Default 'resolve' mode
+}
+
+///////////////////////////////////////////
 // Save data array as pipe-delimited file,
 // to be used as input for TNRS batch app
 ///////////////////////////////////////////
@@ -141,10 +153,10 @@ if ($status) die("Failed file conversion: dos2unix\r\n");
 
 $data_dir_tmp_full = $data_dir_tmp . "/";
 // Testing with hard-coded options for now
-$cmd = $BATCH_DIR . "controller.pl -in '$file_tmp'  -out '$results_file' -sources '$sources' -class $class -nbatch 10 -d t ";
+$cmd = $BATCH_DIR . "controller.pl -in '$file_tmp'  -out '$results_file' -sources '$sources' -class $class -nbatch 10 -d t $mode2 ";
 exec($cmd, $output, $status);
 if ($status) die("ERROR: tnrs_batch exit status: $status");
-// if ($status) die("
+//if ($status) die("
 // \$status=$status
 // \$file_tmp='$file_tmp'
 // \$results_file='$results_file'

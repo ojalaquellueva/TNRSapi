@@ -30,7 +30,7 @@ $class="tropicos";
 // Processing mode
 //	Options: "resolve" (default), "parse"
 // 	E.g., $mode="parse"
-$mode="resolve";
+$mode="parse";
 
 // Match accuracy
 // Must be decimal from 0.05 (default) to 1
@@ -134,10 +134,6 @@ $json_data = json_encode(array('opts' => $opts_arr, 'data' => $data_arr));
 echo "JSON input for the API:\r\n";
 echo $json_data . "\r\n\r\n";
 
-//die("Exiting at 'Echo the JSON'\r\n");
-
-
-
 ///////////////////////////////
 // Decompose the JSON
 // into opt and data
@@ -163,14 +159,6 @@ echo "\r\n";
 echo "The data:\r\n";
 var_dump($input_array['data']);
 echo "\r\n";
-
-
-
-
-
-
-//die("Exiting at 'Decompose the JSON'\r\n");
-
 
 ///////////////////////////////
 // Call the API
