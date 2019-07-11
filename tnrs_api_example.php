@@ -10,9 +10,28 @@
 
 require_once("html_status_codes.php");
 
-// $status_msg=$http_status_codes[$status_code];
-// echo "status_code=$status_code, status_msg=$status_msg \r\n";
-// die("\r\n");
+/////////////////////
+// API parameters
+/////////////////////
+
+require_once 'params.php';	// parameters in ALL_CAPS set here
+
+// Path and name of file containing input names and political divisions
+$inputfilename = "testfile.csv";
+
+// Desired response format
+//	Options: json*|xml
+// Example: $format="xml";
+// NOT YET IMPLEMENTED!
+$format="json";
+
+// Number of lines to import
+// Use this option to limit test data to small subsample of input file
+// Set to number > # of lines in file to import entire file
+$lines = 10;
+
+// api base url 
+$base_url = "https://tnrsapidev.xyz/tnrs_api.php";
 
 /////////////////////////////////////////
 // TNRS options
@@ -64,29 +83,6 @@ $constr_ts=false;
 // Note: "best" (=return best match only) does not appear to be available
 //		from current TNRSbatch. Working on it.
 $matches="all";
-
-/////////////////////
-// Other parameters
-/////////////////////
-
-require_once 'params.php';	// parameters in ALL_CAPS set here
-
-// Path and name of file containing input names and political divisions
-$inputfilename = "testfile.csv";
-
-// Desired response format
-//	Options: json*|xml
-// Example: $format="xml";
-// NOT YET IMPLEMENTED!
-$format="json";
-
-// Number of lines to import
-// Use this option to limit test data to small subsample of input file
-// Set to number > # of lines in file to import entire file
-$lines = 10;
-
-// api base url 
-$base_url = "https://tnrsapidev.xyz/tnrs_api.php";
 
 /////////////////////////////////////////
 // Display options

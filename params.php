@@ -1,31 +1,5 @@
 <?php
 
-//////////////////////////////////////////////////
-// All TNRS options
-// Use to test if submitted options allowed
-//////////////////////////////////////////////////
-
-$TNRS_SOURCES = array("tropicos","tpl","gcc","ildis","usda","ncbi");
-$TNRS_CLASSIFICATIONS = array("tropicos","ncbi");	// Family classification
-$TNRS_MODES = array("resolve","parse");		// Processing mode
-$TNRS_CONSTR_HT = array("true","false"); 	// Constrain by higher taxa
-$TNRS_CONSTR_TS = array("true","false"); 	// Constrain by taxonomic sources
-$TNRS_MATCHES =  array("best","all");		// Matches to return
-$TNRS_ACC_MIN = 0.05;		// Min match accuracy
-$TNRS_ACC_MAX = 1;			// Max match accuracy
-
-//////////////////////////////////////////////////
-// TNRS default options
-//////////////////////////////////////////////////
-
-$TNRS_DEF_SOURCES = "tpl,gcc,ildis,tropicos,usda";	// Taxonomic sources
-$TNRS_DEF_CLASSIFICATION = "tropicos"; 				// Family classification
-$TNRS_DEF_MODE = "resolve";		// Processing mode
-$TNRS_DEF_CONSTR_HT = "false"; 	// Constrain by higher taxa
-$TNRS_DEF_CONSTR_TS = "false"; 	// Constrain by taxonomic sources
-$TNRS_DEF_MATCHES =  "all";		// Matches to return
-$TNRS_DEF_ACC = 0.05;			// Match accuracy
-
 /////////////////////////////////////////////////
 // API parameters
 /////////////////////////////////////////////////
@@ -51,7 +25,8 @@ $BATCH_DIR=$BASE_DIR."tnrs_batch/src/";
 $CONFIG_DIR = $BASE_DIR . "config/"; 
 
 // Input & output data directory
-$DATADIR = $BASE_DIR."data/";
+$DATADIR = $BASE_DIR."data/";	// For production, keep outside API directory
+//$DATADIR = $APP_DIR."example_data/";	// For testing only
 
 // Path and name of log file
 $LOGFILE_NAME = "log.txt";
@@ -67,5 +42,32 @@ include $utilities_path."taxon_functions.inc";
 include $utilities_path."sql_functions.inc";
 $timer_on=$utilities_path."timer_on.inc";
 $timer_off=$utilities_path."timer_off.inc";
+
+
+//////////////////////////////////////////////////
+// All TNRS options
+// Use to test if submitted options allowed
+//////////////////////////////////////////////////
+
+$TNRS_SOURCES = array("tropicos","tpl","gcc","ildis","usda","ncbi");
+$TNRS_CLASSIFICATIONS = array("tropicos","ncbi");	// Family classification
+$TNRS_MODES = array("resolve","parse");		// Processing mode
+$TNRS_CONSTR_HT = array("true","false"); 	// Constrain by higher taxa
+$TNRS_CONSTR_TS = array("true","false"); 	// Constrain by taxonomic sources
+$TNRS_MATCHES =  array("best","all");		// Matches to return
+$TNRS_ACC_MIN = 0.05;		// Min match accuracy
+$TNRS_ACC_MAX = 1;			// Max match accuracy
+
+//////////////////////////////////////////////////
+// TNRS default options
+//////////////////////////////////////////////////
+
+$TNRS_DEF_SOURCES = "tpl,gcc,ildis,tropicos,usda";	// Taxonomic sources
+$TNRS_DEF_CLASSIFICATION = "tropicos"; 				// Family classification
+$TNRS_DEF_MODE = "resolve";		// Processing mode
+$TNRS_DEF_CONSTR_HT = "false"; 	// Constrain by higher taxa
+$TNRS_DEF_CONSTR_TS = "false"; 	// Constrain by taxonomic sources
+$TNRS_DEF_MATCHES =  "all";		// Matches to return
+$TNRS_DEF_ACC = 0.05;			// Match accuracy
 
 ?>
