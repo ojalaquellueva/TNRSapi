@@ -10,11 +10,8 @@
 ///////////////////////////////////
 
 require_once 'params.php';
-//$msg = "Processing batch api request\r\n\r\n";
-//file_put_contents($LOGFILE, $msg)
 
 // Temporary data directory
-//$data_dir_tmp = "/tmp/tnrs";
 $data_dir_tmp = $DATADIR;
 
 // Input file name & path
@@ -61,16 +58,23 @@ function load_tabbed_file($filepath, $load_keys=false) {
 // Receive & validate the POST request
 ////////////////////////////////////////
 
+require_once("html_status_codes.php");
+
+// Start by assuming no errors
+// Any run time errors and this will be set to true
+$errs=false;
+$err_code=0;
+
 // Make sure request is a POST
 if (strcasecmp($_SERVER['REQUEST_METHOD'], 'POST') != 0) {
-    throw new Exception('Request method must be POST!');
+	$err_code=400; $err_msg="ERROR: Request method must be POST\r\n";	$errs=true;
 }
  
 // Make sure that the content type of the POST request has been 
 // set to application/json
 $contentType = isset($_SERVER["CONTENT_TYPE"]) ? trim($_SERVER["CONTENT_TYPE"]) : '';
 if (strcasecmp($contentType, 'application/json') != 0) {
-    throw new Exception('Content type must be: application/json');
+	$err_code=400; $err_msg="ERROR: Content type must be: application/json\r\n";	$errs=true;
 }
  
 // Receive the RAW post data.
@@ -86,12 +90,23 @@ $input_array = json_decode($input_json, true);
 
 // If json_decode failed, the JSON is invalid.
 if (!is_array($input_array)) {
-    throw new Exception('Received content contained invalid JSON!');
+	$err_code=400; $err_msg="ERROR: Received content contained invalid JSON!\r\n";	$errs=true;
 }
 
 // Separate options and data
 $opt_arr = $input_array['opts'];
 $data_arr = $input_array['data'];
+
+///////////////////////////////////////////
+// Validate input data < $MAX_ROWS rows
+///////////////////////////////////////////
+$rows = count($data_arr);
+
+if ( $rows>$MAX_ROWS && $MAX_ROWS>0 ) {
+	$errs=true; $err_code=400;
+	$err_msg="ERROR: Requested $rows rows exceeds $MAX_ROWS row limit\r\n";	
+}
+
 
 ///////////////////////////////////////////
 // Validate TNRS options
@@ -119,33 +134,27 @@ if ( $mode == "parse" ) {
 // Make temporary data directory & file in /tmp 
 $cmd="mkdir -p $data_dir_tmp";
 exec($cmd, $output, $status);
-if ($status) die("ERROR: Unable to create temp data directory");
+if ($status) {
+	$err_code=500; $err_msg="ERROR: Unable to create temp data directory\r\n";	$errs=true;
+}
 
 // Convert array to pipe-delimited file & save
 // TNRSbatch requires pipe-delimited
 $fp = fopen($file_tmp, "w");
 $i = 0;
 foreach ($data_arr as $row) {
-    //if($i === 0) fputcsv($fp, array_keys($row));	// header
-    //fputcsv($fp, array_values($row));				// data
     fputcsv($fp, array_values($row), '|');				// data
     $i++;
 }
-// foreach ($data_arr as $row) {
-// 	$curr_row = array_values($row);
-// 	$result = implode("|", array_map(function ($v) {
-// 		return $v[0] . "=" .$v[1];
-// 	}, $curr_row));
-// 	fputcsv($fp, $result);
-//     $i++;
-// }
 fclose($fp);
 
 // Run dos2unix to fix stupid DOS/Mac/Excel/UTF-16 issues, if any
 $cmd = "dos2unix $file_tmp";
 exec($cmd, $output, $status);
 //if ($status) die("ERROR: tnrs_batch non-zero exit status");
-if ($status) die("Failed file conversion: dos2unix\r\n");
+if ($status) {
+	$err_code=500; $err_msg="Failed file conversion: dos2unix\r\n";	$errs=true;
+}
 
 ///////////////////////////////////
 // Process the CSV file in batch mode
@@ -155,7 +164,9 @@ $data_dir_tmp_full = $data_dir_tmp . "/";
 // Testing with hard-coded options for now
 $cmd = $BATCH_DIR . "controller.pl -in '$file_tmp'  -out '$results_file' -sources '$sources' -class $class -nbatch 10 -d t $mode2 ";
 exec($cmd, $output, $status);
-if ($status) die("ERROR: tnrs_batch exit status: $status");
+if ($status) {
+	$err_code=500; $err_msg="ERROR: tnrs_batch exit status: $status\r\n";	$errs=true;
+}
 //if ($status) die("
 // \$status=$status
 // \$file_tmp='$file_tmp'
@@ -167,18 +178,13 @@ if ($status) die("ERROR: tnrs_batch exit status: $status");
 // file and convert to JSON
 ///////////////////////////////////
 
-/*
-header('Content-type: application/json');echo "\r\n\$data_dir_tmp: " . $data_dir_tmp . "\r\n\r\n";
-die();
-*/
-
 // Import the results file (tab-delimitted) to array
 $results_array = load_tabbed_file($results_file, true);
 
 // Convert to simple indexed array
 $results_array = array_values($results_array); 	
 
-// Fix header for parse-only results
+// Fix header of parse-only results
 if ($mode=="parse") {
 	$results_array[0]=array(
 	'Name_submitted',
@@ -201,7 +207,12 @@ $results_json = json_encode($results_array);
 // Echo the results
 ///////////////////////////////////
 
-header('Content-type: application/json');
-echo $results_json;
+if ($errs) {
+	http_response_code($err_code);
+	echo $err_msg;
+} else {
+	header('Content-type: application/json');
+	echo $results_json;
+}
 
 ?>

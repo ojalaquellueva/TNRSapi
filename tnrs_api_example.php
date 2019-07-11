@@ -8,6 +8,12 @@
 // 	 the process.
 //////////////////////////////////////////////////////
 
+require_once("html_status_codes.php");
+
+// $status_msg=$http_status_codes[$status_code];
+// echo "status_code=$status_code, status_msg=$status_msg \r\n";
+// die("\r\n");
+
 /////////////////////////////////////////
 // TNRS options
 //
@@ -77,7 +83,7 @@ $format="json";
 // Number of lines to import
 // Use this option to limit test data to small subsample of input file
 // Set to number > # of lines in file to import entire file
-$lines = 5;
+$lines = 10;
 
 // api base url 
 $base_url = "https://tnrsapidev.xyz/tnrs_api.php";
@@ -214,7 +220,8 @@ $response = curl_exec($ch);
 $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
 if ( $status != 201 && $status != 200 ) {
-    die("Error: call to URL $url failed with status $status, response $response, curl_error " . curl_error($ch) . ", curl_errno " . curl_errno($ch) . "\r\n");
+	$status_msg = $http_status_codes[$status];
+    die("Error: call to URL $url failed with status $status $status_msg \r\nDetails: $response \r\n");
 }
 
 // Close curl
@@ -244,8 +251,6 @@ if ($disp_results_csv) {
 		echo implode(",", array_slice($result, 0)) . "\r\n";
 	}
 }
-
-
 
 echo "\r\n";
 
