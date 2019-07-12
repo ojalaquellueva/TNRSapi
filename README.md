@@ -71,7 +71,7 @@ cp /var/www/tnrs/api/example_data/testfile.csv /var/www/tnrs/data/
 
 ```
 sudo chown -R $USER /var/www/tnrs/api
-sudo chgrp -R tnrs /var/www/tnrs/api
+sudo chgrp -R www-data /var/www/tnrs/api
 sudo chmod -R 774 /var/www/tnrs/api
 sudo chmod -R g+s /var/www/tnrs/api
 ```
