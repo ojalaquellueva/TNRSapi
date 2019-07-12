@@ -107,7 +107,6 @@ if ( $rows>$MAX_ROWS && $MAX_ROWS>0 ) {
 	$err_msg="ERROR: Requested $rows rows exceeds $MAX_ROWS row limit\r\n";	
 }
 
-
 ///////////////////////////////////////////
 // Validate TNRS options
 ///////////////////////////////////////////
@@ -121,6 +120,7 @@ include $APP_DIR . "validate_options.php";
 
 // Processing mode
 if ( $mode == "parse" ) {
+//if(stripos($mode, "parse") !== false) {
 	$mode2 = "-mode parse";	// Parse-only mode
 } else {
 	$mode2 = ""; 		// Default 'resolve' mode
@@ -186,6 +186,7 @@ $results_array = array_values($results_array);
 
 // Fix header of parse-only results
 if ($mode=="parse") {
+//if(stripos($mode, "parse") !== false) {
 	$results_array[0]=array(
 	'Name_submitted',
 	'Family',
@@ -213,6 +214,7 @@ if ($errs) {
 } else {
 	header('Content-type: application/json');
 	echo $results_json;
+	//echo "sources='$sources_bak', class='$class_bak', mode='$mode_bak'";
 }
 
 ?>

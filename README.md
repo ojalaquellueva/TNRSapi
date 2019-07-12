@@ -1,8 +1,8 @@
-# TNRS API
+# TNRSbatch API
 
 ## I. Introduction
 
-An API wrapper for the TNRSbatch command line application. TNRSbatch is a command line adaption of the original iPlant TNRS (Boyle 2013; `http://tnrs.iplantcollaborative.org/`). See `https://github.com/iPlantCollaborativeOpenSource/TNRS` for information on the original TNRS. See `https://github.com/ojalaquellueva/TNRSbatch` for information on TNRSbatch. Also see Mozzherin 2008 and Rees, T. 2014.
+TNRSbatch API is an API wrapper for TNRSbatch, a command line adaption of the  Taxonomic Name Resolution Service (TNRS) web interface (Boyle 2013; `http://tnrs.iplantcollaborative.org/`). For information on TNRSbatch, see `https://github.com/ojalaquellueva/TNRSbatch`. For information on the original TNRS, see `https://github.com/iPlantCollaborativeOpenSource/TNRS`. Also see References (at end) for information on component applications GN Parser (Mozzherin 2008) and Taxamatch (Rees 2014). 
 
 ## II. Dependencies
 * **TNRS MySQL database**
@@ -17,15 +17,13 @@ An API wrapper for the TNRSbatch command line application. TNRSbatch is a comman
    * Run as socket server. See `https://github.com/ojalaquellueva/TNRSbatch` for details.
 
 ## III. Required OS and software
-
 * Ubuntu 18.04.2 LTS
 * Perl 5.26.1
 * PHP 7.2.19
 * MySQL 5.7.26
 * Apache 2.4.29
-* Makeflow 4.0.0-RELEASE (released 02/06/2018)
+* Makeflow 4.0.0 (released 02/06/2018)
 * Ruby 2.5.1p57
-
 (Not tested on earlier versions)
 
 PHP extensions:
@@ -45,7 +43,7 @@ tnrs
 ├── data
 └── tnrs_batch
 
-* Command line application tnrs_batch may be run from other locations. You will need to adjust API parameters and Virtual Host directives accordingly.
+* Command line application tnrs_batch may be run from other locations. Adjust API parameters and Virtual Host directives accordingly.
 
 #### 2. Download contents of this respository to api:
 
@@ -83,10 +81,10 @@ Repeat for directories tnrs_batch and data.
 #### 6. Set up Apache Virtual Host with /var/www/tnrs/api as DocumentRoot
 * Example: `https://www.digitalocean.com/community/tutorials/how-to-set-up-apache-virtual-hosts-on-ubuntu-16-04`
 
-#### 7. Set up SSL if desired
+#### 7. Set up SSL if desired/required
 * Example using Let's Encrypt: `https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-16-04`
 
-#### 8. Start GN parser as socket server
+#### 8. Start parser as socket server
 
 ```
 cd /var/www/tnrs/tnrs_batch
@@ -96,7 +94,33 @@ nohup parserver &
 
 ## V. Usage
 
-#### API test script
+#### Input data
+
+Input data should be organized as a UTF-8 CSV file with two columns. The first column must be an integer ID that uniquely identifies each row. The second column is the taxon name, with or without authorities. Optionally, the family name may be prepended to the taxon name (separated by a whitespace, NOT a comma) to help distinguish between homonyms (identical names applied to different taxa) in different families. Family name, if included, MUST end in -aceae or it will prevent matching. The first letter of the genus name must be capitalized for the parser to recognize it as a genus. Below is an example of a properly formated input file:
+
+    1,Arecaceae Mauritia
+    2,Solanaceae Solanum bipatens Dunal
+    3,Arecaceae Leopoldinia pulchra Mart.
+    4,Melastomataceae Leandra schenckii
+    5,Piper arboreum Aubl.
+    6,Poaceae Pseudochaetochloa australiensis Hitchc.
+    7,Juglandaceae Engelhardia spicata var. colebrookeana (Lindl. ex Wall. ) Koord. & Valeton
+    8,Melastomataceae Miconia sp.1
+    
+Input data must be converted to JSON and combined as element "data" with the TNRS options (element "opts"; see Options, below). The combined JSON object is sent to the API as POST data in the request body. The scripts below provide examples of how to do this in PHP and R. 
+
+#### Options
+
+The API accepts the following TNRS options, which must be converted to JSON and combined as element "opts" along with the data (element "data") in the request body POST data.
+
+
+| Option | Meaning | Value(s) | Default | Notes |
+| ------ | ------- | -------- | ------ | -----|
+| sources | Taxonomic sources | tpl,gcc,ildis,tropicos,usda,ncbi | tpl,gcc,ildis,tropicos,usda | Can be combined, with comma delimiters
+| class | Family classification | tropicos,ncbi | tropicos | tropicos is euqivalent to APG III
+| mode | Processing mode | resolve,parse | resolve | Parse-only mode separates name components. Resolve mode parses, matches to a published name and resolves synonyms to accepted name.
+
+#### PHP Example
 
 Example syntax for interacting with API using php_curl is given in tnrs_api_example.php. To run the test script:
 
@@ -107,6 +131,10 @@ php tnrs_api_example.php
 * Also see API parameters section at start of tnrs_api_example.php
 * For TNRS options and defaults, see params.php
 * Make sure that test file (testfile.csv) is available in $DATADIR (as set in params.php)
+
+#### R Example
+
+For an example of accessing the TNRS API in R, see: `http://bien.nceas.ucsb.edu/bien/tools/tnrs/tnrs-api-r-example/`
 
 ## VI. References
 ﻿Boyle, B., N. Hopkins, Z. Lu, J. A. Raygoza Garay, D. Mozzherin, T. Rees, N. Matasci, M. L. Narro, W. H. Piel, S. J. Mckay, S. Lowry, C. Freeland, R. K. Peet, and B. J. Enquist. 2013. The taxonomic name resolution service: An online tool for automated standardization of plant names. BMC Bioinformatics 14(1):16.

@@ -4,6 +4,11 @@
 // Validate TNRS options passed to API
 //////////////////////////////////////////////
 
+// Testing
+$sources_bak = $opt_arr['sources'];
+$class_bak = $opt_arr['class'];
+$mode_bak = $opt_arr['mode'];
+
 // Taxonomic sources
 if (array_key_exists('sources', $opt_arr)) {
 	$sources = $opt_arr['sources'];
