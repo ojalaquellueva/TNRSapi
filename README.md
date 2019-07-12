@@ -38,10 +38,10 @@ PHP extensions:
 
 #### 1.Create the following directory structure under /var/www/:
 
-tnrs
-  api
-  data
-  tnrs_batch
+tnrs  
+  api  
+  data  
+  tnrs_batch  
 
 * Command line application tnrs_batch may be run from other locations. Adjust API parameters and Virtual Host directives accordingly.
 
