@@ -67,7 +67,7 @@ rm -rf .git
 cp /var/www/tnrs/api/example_data/testfile.csv /var/www/tnrs/data/
 ```
 
-##### 5. Adjust permissions
+#### 5. Adjust permissions
 
 ```
 sudo chown -R $USER /var/www/tnrs/api
@@ -90,7 +90,10 @@ Repeat for directories tnrs_batch and data.
 * Code and documentation for creating TNRS database at `https://github.com/iPlantCollaborativeOpenSource/TNRS/tree/master/tnrs3_db_scripts`
 * Warning: PHP code for TNRS DB may need update to PHP7
 
-#### 9. Start parser as socket server
+#### 9. Update TNRS database, user and password parameters in TNRSbatch config file
+* See `https://github.com/ojalaquellueva/TNRSbatch`
+
+#### 10. Start parser as socket server
 
 ```
 cd /var/www/tnrs/tnrs_batch
