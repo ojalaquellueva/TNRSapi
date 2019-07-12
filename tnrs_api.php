@@ -10,6 +10,7 @@
 ///////////////////////////////////
 
 require_once 'params.php';
+require_once($utilities_path."status_codes.php");
 
 // Temporary data directory
 $data_dir_tmp = $DATADIR;
@@ -57,8 +58,6 @@ function load_tabbed_file($filepath, $load_keys=false) {
 ////////////////////////////////////////
 // Receive & validate the POST request
 ////////////////////////////////////////
-
-require_once("html_status_codes.php");
 
 // Start by assuming no errors
 // Any run time errors and this will be set to true

@@ -8,7 +8,7 @@
 // 	 the process.
 //////////////////////////////////////////////////////
 
-require_once("html_status_codes.php");
+require_once("includes/php/status_codes.php");
 
 /////////////////////
 // API parameters
