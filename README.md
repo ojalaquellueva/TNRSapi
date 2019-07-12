@@ -84,7 +84,13 @@ Repeat for directories tnrs_batch and data.
 #### 7. Set up SSL if desired/required
 * Example using Let's Encrypt: `https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-16-04`
 
-#### 8. Start parser as socket server
+#### 8. Build tnrs database or install from mysqldump
+* Create and populate the database
+* Create MySQL user tnrs with read-only access on the TNRS database
+* Code and documentation for creating TNRS database at `https://github.com/iPlantCollaborativeOpenSource/TNRS/tree/master/tnrs3_db_scripts`
+* Warning: PHP code for TNRS DB may need update to PHP7
+
+#### 9. Start parser as socket server
 
 ```
 cd /var/www/tnrs/tnrs_batch
