@@ -28,10 +28,10 @@ $format="json";
 // Number of lines to import
 // Use this option to limit test data to small subsample of input file
 // Set to number > # of lines in file to import entire file
-$lines = 10;
+$lines = 10000;
 
 // api base url 
-$base_url = "https://tnrsapidev.xyz/tnrs_api.php";
+$base_url = "https://tnrsapidev.xyz/tnrs_api2.php";
 
 /////////////////////////////////////////
 // TNRS options
@@ -59,6 +59,7 @@ $class="tropicos";
 //	Options: resolve*|parse
 // 	E.g., $mode="parse"
 $mode="parse";
+$mode="resolve";
 //$mode="";		// Same as $mode="resolve";
 
 // Match accuracy (NOT IMPLEMENTED)
@@ -194,7 +195,6 @@ if ($disp_json_data) {
 	echo "API input (options + raw data converted to JSON):\r\n";
 	echo $json_data . "\r\n\r\n";
 }
-
 
 ///////////////////////////////
 // Call the API
