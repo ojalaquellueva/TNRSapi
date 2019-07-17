@@ -2,19 +2,12 @@
 
 //////////////////////////////////////////////
 // Validate TNRS options passed to API
-//
-// Note: Target point "err" is at end of main 
-// api script
 //////////////////////////////////////////////
 
-// For testing only
+// Testing
 $sources_bak = $opt_arr['sources'];
 $class_bak = $opt_arr['class'];
 $mode_bak = $opt_arr['mode'];
-
-/////////////////////////////////////////////
-// TNRS options
-/////////////////////////////////////////////
 
 // Taxonomic sources
 if (array_key_exists('sources', $opt_arr)) {
@@ -112,31 +105,10 @@ if (array_key_exists('matches', $opt_arr)) {
 		$matches = $TNRS_DEF_MATCHES;
 	} else {
 		$valid = in_array($matches, $TNRS_MATCHES);
-		if ( $valid === false ) {
-			$err_msg="ERROR: Invalid option '$matches' for 'matches'\r\n"; 
-			$err_code=400; 
-			$err=true;
-		}
+		if ( $valid === false ) die("ERROR: Invalid option '$matches' for 'matches'\r\n");
 	}
 } else {
 	$matches = $TNRS_DEF_MATCHES;
-}
-
-/////////////////////////////////////////////
-// Other options
-/////////////////////////////////////////////
-
-// Number of batches for makeflow threads
-// If not set, uses default $NBATCH
-if (array_key_exists('batches', $opt_arr)) {
-	$batches = $opt_arr['batches'];
-	
-	if ( $batches==intval($batches) ) {
-		$NBATCH = $batches;
-	} else {
-		$b=intval($batches);
-		$err_msg="ERROR: Invalid value '$batches' for option 'batches': must be an integer\r\n"; $err_code=400; $err=true;
-	}
 }
 
 ?>

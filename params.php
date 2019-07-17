@@ -6,10 +6,11 @@
 
 // Maximum permitted input rows per request
 // For no limit, set to 0
-$MAX_ROWS=1000;	
+$MAX_ROWS=5000;	
 					
-// Batch size for each thread
-$NBATCH=10000;					
+// Number of batches
+$NBATCH=10000;	
+$NBATCH=25;				
 
 //////////////////////////////////////////////////
 // Include paths and filenames

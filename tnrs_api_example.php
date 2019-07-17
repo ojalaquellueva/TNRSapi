@@ -29,6 +29,7 @@ $format="json";
 // Use this option to limit test data to small subsample of input file
 // Set to number > # of lines in file to import entire file
 $lines = 10000000000;
+//$lines = 15;
 
 // api base url 
 $base_url = "https://tnrsapidev.xyz/tnrs_api.php";
@@ -89,20 +90,32 @@ $matches="all";
 // Display options
 // 
 // * Turn on/off what is echoed to terminal
-// * Raw data and JSON results are always echoed
+// * Raw data always displayed
 /////////////////////////////////////////
 
 $disp_data_array=false;		// Echo raw data as array
 $disp_combined_array=false;	// Echo combined options+data array
 $disp_opts_array=false;		// Echo TNRS options as array
 $disp_opts=true;			// Echo TNRS options
-$disp_json_data=true;		// Echo the options + raw data JSON POST data
+$disp_json_data=false;		// Echo the options + raw data JSON POST data
+$disp_results_json=false;	// Echo results as array
 $disp_results_array=false;	// Echo results as array
-$disp_results_csv=true;		// Echo results as CSV text, for pasting to Excel
+$disp_results_csv=false;		// Echo results as CSV text, for pasting to Excel
+$time=true;					// Echo time elapsed
+/////////////////////////////////////////////////////
+// Get command line options
+// Use to over-ride the above parameters
+/////////////////////////////////////////////////////
+
+// Get options, set defaults for optional parameters
+$options = getopt("b:");
+$batches=isset($options["b"])?$options["b"]:"$NBATCH";	// Use default if unset
 
 ////////////////////////////////////////////////////////////////
 // Main
 ////////////////////////////////////////////////////////////////
+
+include $timer_on; 	// Start the timer
 
 ///////////////////////////////
 // Make options array
@@ -115,7 +128,8 @@ $opts_arr = array(
 "acc"=>$acc, 
 "constr_ht"=>$constr_ht, 
 "constr_ts"=>$constr_ts,
-"matches"=>$matches
+"matches"=>$matches,
+"batches"=>$batches
 );
 
 ///////////////////////////////
@@ -187,6 +201,7 @@ if ($disp_opts) {
 	echo "  constr_ht: " . $constr_ht_disp . "\r\n";
 	echo "  constr_ts: " . $constr_ts_disp . "\r\n";
 	echo "  matches: " . $opts['matches'] . "\r\n";
+	echo "  batches: " . $opts['batches'] . "\r\n";
 	echo "\r\n";
 }
 
@@ -231,9 +246,11 @@ $results_json = $response;
 $results = json_decode($results_json, true);	// Comnvert JSON results to array
 
 // Echo the JSON response
-echo "API results (JSON)\r\n";
-echo $results_json;
-echo "\r\n\r\n";
+if ($disp_results_json) {
+	echo "API results (JSON)\r\n";
+	echo $results_json;
+	echo "\r\n\r\n";
+}
 
 if ($disp_results_array) {
 	echo "API results as array:\r\n";
@@ -249,5 +266,12 @@ if ($disp_results_csv) {
 }
 
 echo "\r\n";
+
+///////////////////////////////////
+// Echo time elapsed
+///////////////////////////////////
+
+include $timer_off;	// Stop the timer
+if ($time) echo "\r\nTime elapsed: " . $tsecs . " seconds.\r\n\r\n"; 
 
 ?>

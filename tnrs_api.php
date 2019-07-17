@@ -65,6 +65,8 @@ function load_tabbed_file($filepath, $load_keys=false) {
 // Start by assuming no errors
 // Any run time errors and this will be set to true
 $err_code=0;
+$err_msg="";
+$err=false;
 
 // Make sure request is a POST
 if (strcasecmp($_SERVER['REQUEST_METHOD'], 'POST') != 0) {
@@ -139,6 +141,7 @@ if ($rows==0) {
 ///////////////////////////////////////////
 
 include $APP_DIR . "validate_options.php";
+if ($err) goto err;
 
 ///////////////////////////////////////////
 // Reset selected options for compatibility 
@@ -265,7 +268,7 @@ foreach ($results_array as $row) {
 	$new = 	preg_replace($ptn, $repl, $old);
 	$results_array[$n][0] = $new;
 
-	// Excessive escapes of embedded single quotes, if any
+	// Escapes of embedded single quotes, if any
 	$old = $results_array[$n][0];
 	$ptn = "/'\\\'/";
 	$repl = "";
@@ -278,14 +281,14 @@ foreach ($results_array as $row) {
 	//   parse mode: column 10
 	///////////////////////////////////
 	
-	// Initial single quote (preceded by double quote)
+	// Initial single quote preceded by double quote
 	$old = $results_array[$n][$umt_col];
 	$ptn = "/^\"'/";
 	$repl = "\"";
 	$new = 	preg_replace($ptn, $repl, $old);
 	$results_array[$n][$umt_col] = $new;
 
-	// Unnecessary escape characters
+	// Escape characters
 	$old = $results_array[$n][$umt_col];
 	$ptn = "/\\\/";
 	$repl = "";
@@ -296,7 +299,7 @@ foreach ($results_array as $row) {
 	// Multiple time to catch multiple whitespace
 	$results_array[$n][$umt_col] = preg_replace("/^\"\s+/", "\"", $results_array[$n][$umt_col]);
 	
-	// Initial single quote (not preceded by double quote)
+	// Initial single quote not preceded by double quote
 	$old = $results_array[$n][$umt_col];
 	$ptn = "/^'/";
 	$repl = "";
