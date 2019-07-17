@@ -98,9 +98,9 @@ $disp_combined_array=false;	// Echo combined options+data array
 $disp_opts_array=false;		// Echo TNRS options as array
 $disp_opts=true;			// Echo TNRS options
 $disp_json_data=false;		// Echo the options + raw data JSON POST data
-$disp_results_json=false;	// Echo results as array
+$disp_results_json=true;	// Echo results as array
 $disp_results_array=false;	// Echo results as array
-$disp_results_csv=false;		// Echo results as CSV text, for pasting to Excel
+$disp_results_csv=true;		// Echo results as CSV text, for pasting to Excel
 $time=true;					// Echo time elapsed
 /////////////////////////////////////////////////////
 // Get command line options

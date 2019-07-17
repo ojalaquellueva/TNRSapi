@@ -3,8 +3,8 @@
 //////////////////////////////////////////////
 // Validate TNRS options passed to API
 //
-// Note: Target point "err" is at end of main 
-// api script
+// Note that if multiple errors detected, only
+// the last gets reported
 //////////////////////////////////////////////
 
 // For testing only
@@ -25,7 +25,10 @@ if (array_key_exists('sources', $opt_arr)) {
 	} else {
 		$src_arr = explode(",",$sources);
 		$valid = count(array_intersect($src_arr, $TNRS_SOURCES)) == count($src_arr);
-		if ( $valid === false ) die("ERROR: Invalid option '$sources' for 'sources'\r\n");
+		if ( $valid === false ) {
+			$err_msg="ERROR: Invalid option '$sources' for 'sources'\r\n"; 
+			$err_code=400; $err=true;
+		}
 	}
 } else {
 	$sources = $TNRS_DEF_SOURCES;
@@ -39,7 +42,9 @@ if (array_key_exists('class', $opt_arr)) {
 		$class = $TNRS_DEF_CLASSIFICATION;
 	} else {
 		$valid = in_array($class, $TNRS_CLASSIFICATIONS);
-		if ( $valid === false ) die("ERROR: Invalid option '$class' for 'class'\r\n");
+		if ( $valid === false ) {
+			$err_msg="ERROR: Invalid option '$class' for 'class'\r\n"; $err_code=400; $err=true;
+		}
 	}
 } else {
 	$class = $TNRS_DEF_CLASSIFICATION;
@@ -53,7 +58,10 @@ if (array_key_exists('mode', $opt_arr)) {
 		$mode = $TNRS_DEF_MODE;
 	} else {
 		$valid = in_array($mode, $TNRS_MODES);
-		if ( $valid === false ) die("ERROR: Invalid option '$mode' for 'mode'\r\n");
+		if ( $valid === false ) {
+			$err_msg="ERROR: Invalid option '$mode' for 'mode'\r\n"; 
+			$err_code=400; $err=true;
+		}
 	}
 } else {
 	$mode = $TNRS_DEF_MODE;
@@ -67,7 +75,10 @@ if (array_key_exists('constr_ht', $opt_arr)) {
 		$constr_ht = $TNRS_DEF_CONSTR_HT;
 	} else {
 		$valid = in_array($constr_ht, $TNRS_CONSTR_HT);
-		if ( $valid === false ) die("ERROR: Invalid option '$constr_ht' for 'constr_ht'\r\n");
+		if ( $valid === false ) {
+			$err_msg="ERROR: Invalid option '$constr_ht' for 'constr_ht'\r\n"; 
+			$err_code=400; $err=true;
+		}
 	}
 } else {
 	$constr_ht = $TNRS_DEF_CONSTR_HT;
@@ -81,7 +92,10 @@ if (array_key_exists('constr_ts', $opt_arr)) {
 		$constr_ts = $TNRS_DEF_CONSTR_TS;
 	} else {
 		$valid = in_array($constr_ts, $TNRS_CONSTR_TS);
-		if ( $valid === false ) die("ERROR: Invalid option '$constr_ts' for 'constr_ts'\r\n");
+		if ( $valid === false ) {
+			$err_msg="ERROR: Invalid option '$constr_ts' for 'constr_ts'\r\n"; 
+			$err_code=400; $err=true;
+		}
 	}
 } else {
 	$constr_ts = $TNRS_DEF_CONSTR_TS;
@@ -98,7 +112,10 @@ if (array_key_exists('acc', $opt_arr)) {
 		if ( is_numeric($acc) ) {
 			if ($acc>=$TNRS_ACC_MIN && $acc<=$TNRS_ACC_MAX ) $valid=true;
 		} 	
-		if ( $valid === false ) die("ERROR: Invalid option '$acc' for 'acc'\r\n");
+		if ( $valid === false ) {
+			$err_msg="ERROR: Invalid value '$acc' for option '$acc'\r\n"; 
+			$err_code=400; $err=true;
+		}
 	}
 } else {
 	$acc = $TNRS_DEF_ACC;
@@ -114,8 +131,7 @@ if (array_key_exists('matches', $opt_arr)) {
 		$valid = in_array($matches, $TNRS_MATCHES);
 		if ( $valid === false ) {
 			$err_msg="ERROR: Invalid option '$matches' for 'matches'\r\n"; 
-			$err_code=400; 
-			$err=true;
+			$err_code=400; $err=true;
 		}
 	}
 } else {
@@ -134,7 +150,6 @@ if (array_key_exists('batches', $opt_arr)) {
 	if ( $batches==intval($batches) ) {
 		$NBATCH = $batches;
 	} else {
-		$b=intval($batches);
 		$err_msg="ERROR: Invalid value '$batches' for option 'batches': must be an integer\r\n"; $err_code=400; $err=true;
 	}
 }
