@@ -4,8 +4,12 @@
 // API parameters
 /////////////////////////////////////////////////
 
-$MAX_ROWS=1000;	// Maximum permitted input rows per request
-					// For no limit, set to 0
+// Maximum permitted input rows per request
+// For no limit, set to 0
+$MAX_ROWS=1000;	
+					
+// Batch size for each thread
+$NBATCH=10000;					
 
 //////////////////////////////////////////////////
 // Include paths and filenames

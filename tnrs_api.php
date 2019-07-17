@@ -189,53 +189,124 @@ if ($status) {
 // Process the CSV file in batch mode
 ///////////////////////////////////
 
-// Only execute command if not errors
-if (!$errs) {
-	$data_dir_tmp_full = $data_dir_tmp . "/";
-	// Testing with hard-coded options for now
-	$cmd = $BATCH_DIR . "controller.pl -in '$file_tmp'  -out '$results_file' -sources '$sources' -class $class -nbatch 10 -d t $mode2 ";
-	exec($cmd, $output, $status);
-	if ($status) {
-		$err_msg="ERROR: tnrs_batch exit status: $status\r\n";
-		$err_code=500; goto err;
-	}
-	//if ($status) die("
-	// \$status=$status
-	// \$file_tmp='$file_tmp'
-	// \$results_file='$results_file'
-	// \$cmd=\"$cmd\"
-	// ");
-	///////////////////////////////////
-	// Retrieve the tab-delimited results
-	// file and convert to JSON
-	///////////////////////////////////
-
-	// Import the results file (tab-delimitted) to array
-	$results_array = load_tabbed_file($results_file, true);
-
-	// Convert to simple indexed array
-	$results_array = array_values($results_array); 	
-
-	// Fix header of parse-only results
-	if ($mode=="parse") {
-	//if(stripos($mode, "parse") !== false) {
-		$results_array[0]=array(
-		'Name_submitted',
-		'Family',
-		'Genus',
-		'Specific_epithet',
-		'Infraspecific_rank',
-		'Infraspecific_epithet',
-		'Infraspecific_rank_2',
-		'Infraspecific_epithet_2',
-		'Author',
-		'Annotations',
-		'Unmatched_terms'
-		);
-	}
-
-	$results_json = json_encode($results_array);
+$data_dir_tmp_full = $data_dir_tmp . "/";
+// Testing with hard-coded options for now
+$cmd = $BATCH_DIR . "controller.pl -in '$file_tmp'  -out '$results_file' -sources '$sources' -class $class -nbatch $NBATCH -d t $mode2 ";
+exec($cmd, $output, $status);
+if ($status) {
+	$err_msg="ERROR: tnrs_batch exit status: $status\r\n";
+	$err_code=500; goto err;
 }
+//if ($status) die("
+// \$status=$status
+// \$file_tmp='$file_tmp'
+// \$results_file='$results_file'
+// \$cmd=\"$cmd\"
+// ");
+///////////////////////////////////
+// Retrieve the tab-delimited results
+// file and convert to JSON
+///////////////////////////////////
+
+// Import the results file (tab-delimitted) to array
+$results_array = load_tabbed_file($results_file, true);
+
+// Convert to simple indexed array
+$results_array = array_values($results_array); 	
+
+// Post-processing
+// Ultimately, this should be done by core services, 
+// but handling in API for now
+if ($mode=="parse") {
+	// Fix header of parse-only results
+	$results_array[0]=array(
+	'Name_submitted',
+	'Family',
+	'Genus',
+	'Specific_epithet',
+	'Infraspecific_rank',
+	'Infraspecific_epithet',
+	'Infraspecific_rank_2',
+	'Infraspecific_epithet_2',
+	'Author',
+	'Annotations',
+	'Unmatched_terms'
+	);
+} 
+
+////////////////////////////////////////////////////
+// Remove superfluous single quotes and escapes 
+////////////////////////////////////////////////////
+
+// Set column number for "Unmatched_terms"
+if ($mode=="parse") {
+	$umt_col = 10;
+} elseif ($mode=="resolve" || $mode=="" ) {
+	$umt_col = 27;
+}
+
+$n = 0;
+foreach ($results_array as $row) {	
+	///////////////////////////////////
+	// Name_sumbitted (column 0)
+	///////////////////////////////////
+	
+	// First single quote
+	$old = $results_array[$n][0];
+	$ptn = "/^\"'/";
+	$repl = "\"";
+	$new = 	preg_replace($ptn, $repl, $old);
+	$results_array[$n][0] = $new;
+	
+	// Last single quote
+	$old = $results_array[$n][0];
+	$ptn = "/'\"$/";
+	$repl = "\"";
+	$new = 	preg_replace($ptn, $repl, $old);
+	$results_array[$n][0] = $new;
+
+	// Excessive escapes of embedded single quotes, if any
+	$old = $results_array[$n][0];
+	$ptn = "/'\\\'/";
+	$repl = "";
+	$new = 	preg_replace($ptn, $repl, $old);
+	$results_array[$n][0] = $new;
+	
+	///////////////////////////////////
+	// Unmatched_terms
+	//   resolve mode: column 27
+	//   parse mode: column 10
+	///////////////////////////////////
+	
+	// Initial single quote (preceded by double quote)
+	$old = $results_array[$n][$umt_col];
+	$ptn = "/^\"'/";
+	$repl = "\"";
+	$new = 	preg_replace($ptn, $repl, $old);
+	$results_array[$n][$umt_col] = $new;
+
+	// Unnecessary escape characters
+	$old = $results_array[$n][$umt_col];
+	$ptn = "/\\\/";
+	$repl = "";
+	$new = 	preg_replace($ptn, $repl, $old);
+	$results_array[$n][$umt_col] = $new;
+		
+	// Extra leading whitespace, preceded by double quote
+	// Multiple time to catch multiple whitespace
+	$results_array[$n][$umt_col] = preg_replace("/^\"\s+/", "\"", $results_array[$n][$umt_col]);
+	
+	// Initial single quote (not preceded by double quote)
+	$old = $results_array[$n][$umt_col];
+	$ptn = "/^'/";
+	$repl = "";
+	$new = 	preg_replace($ptn, $repl, $old);
+	$results_array[$n][$umt_col] = $new;
+	
+	$n++;
+}
+
+$results_json = json_encode($results_array);
 
 ///////////////////////////////////
 // Echo the results
