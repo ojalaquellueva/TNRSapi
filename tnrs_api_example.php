@@ -29,7 +29,7 @@ $format="json";
 // Use this option to limit test data to small subsample of input file
 // Set to number > # of lines in file to import entire file
 $lines = 10000000000;
-//$lines = 15;
+$lines = 5;
 
 // api base url 
 $base_url = "https://tnrsapidev.xyz/tnrs_api.php";
@@ -63,6 +63,11 @@ $mode="parse";
 $mode="resolve";
 //$mode="";		// Same as $mode="resolve";
 
+// Matches to return
+// 	Options: best*|all
+// 	Over-ride command line option -m
+$matches="best";
+
 // Match accuracy (NOT IMPLEMENTED)
 // Must be decimal from 0.05 (default) to 1
 //	E.g., $accuracy=0.50;
@@ -78,13 +83,6 @@ $constr_ht=false;
 //	Options: true|false*
 //	Boolean: do not enclose in quotes (except can use empty string for default)
 $constr_ts=false;
-
-// Matches to return (NOT IMPLEMENTED)
-//	Options: best|all*
-//	E.g., $matches="best";
-// Note: "best" (=return best match only) does not appear to be available
-//		from current TNRSbatch. Working on it.
-$matches="all";
 
 /////////////////////////////////////////
 // Display options
@@ -108,8 +106,10 @@ $time=true;					// Echo time elapsed
 /////////////////////////////////////////////////////
 
 // Get options, set defaults for optional parameters
-$options = getopt("b:");
-$batches=isset($options["b"])?$options["b"]:"$NBATCH";	// Use default if unset
+// Use default if unset
+$options = getopt("b:m:");
+$batches=isset($options["b"])?$options["b"]:"$NBATCH";	
+$matches=isset($options["m"])?$options["m"]:"$TNRS_DEF_MATCHES";
 
 ////////////////////////////////////////////////////////////////
 // Main
