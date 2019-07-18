@@ -252,6 +252,7 @@ $results_array = array_values($results_array);
 if ($mode=="parse") {
 	// Fix header of parse-only results
 	$results_array[0]=array(
+	'ID',
 	'Name_submitted',
 	'Family',
 	'Genus',
@@ -272,37 +273,37 @@ if ($mode=="parse") {
 
 // Set column number for "Unmatched_terms"
 if ($mode=="parse") {
-	$umt_col = 10;
+	$umt_col = 11;
 } elseif ($mode=="resolve" || $mode=="" ) {
-	$umt_col = 27;
+	$umt_col = 28;
 }
 
 $n = 0;
 foreach ($results_array as $row) {	
 	///////////////////////////////////
-	// Name_sumbitted (column 0)
+	// Name_sumbitted (column 1)
 	///////////////////////////////////
 	
 	// First single quote
-	$old = $results_array[$n][0];
+	$old = $results_array[$n][1];
 	$ptn = "/^\"'/";
 	$repl = "\"";
 	$new = 	preg_replace($ptn, $repl, $old);
-	$results_array[$n][0] = $new;
+	$results_array[$n][1] = $new;
 	
 	// Last single quote
-	$old = $results_array[$n][0];
+	$old = $results_array[$n][1];
 	$ptn = "/'\"$/";
 	$repl = "\"";
 	$new = 	preg_replace($ptn, $repl, $old);
-	$results_array[$n][0] = $new;
+	$results_array[$n][1] = $new;
 
 	// Escapes of embedded single quotes, if any
-	$old = $results_array[$n][0];
+	$old = $results_array[$n][1];
 	$ptn = "/'\\\'/";
 	$repl = "";
 	$new = 	preg_replace($ptn, $repl, $old);
-	$results_array[$n][0] = $new;
+	$results_array[$n][1] = $new;
 	
 	///////////////////////////////////
 	// Unmatched_terms

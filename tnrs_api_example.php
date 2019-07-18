@@ -29,7 +29,7 @@ $format="json";
 // Use this option to limit test data to small subsample of input file
 // Set to number > # of lines in file to import entire file
 $lines = 10000000000;
-$lines = 5;
+$lines = 15;
 
 // api base url 
 $base_url = "https://tnrsapidev.xyz/tnrs_api.php";
