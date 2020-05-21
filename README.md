@@ -2,7 +2,7 @@
 
 ## I. Introduction
 
-TNRSbatch API is an API wrapper for TNRSbatch, a command line adaption of the  [Taxonomic Name Resolution Service (TNRS) web interface](http://tnrs.iplantcollaborative.org/) (Boyle 2013). For information on TNRSbatch, see `https://github.com/ojalaquellueva/TNRSbatch`. For information on the original TNRS, see `https://github.com/iPlantCollaborativeOpenSource/TNRS`. Also see References (at end) for information on component applications GN Parser (Mozzherin 2008) and Taxamatch (Rees 2014). 
+TNRSbatch API is an API wrapper for TNRSbatch, a command line adaption of the  [Taxonomic Name Resolution Service (TNRS) web interface](http://tnrs.iplantcollaborative.org/) (Boyle 2013). For information on TNRSbatch, see the [TNRSbatch repo](https://github.com/ojalaquellueva/TNRSbatch). For information on the original TNRS code base, see [https://github.com/iPlantCollaborativeOpenSource/TNRS]. Also see References (at end) for information on component applications GN Parser (Mozzherin 2008) and Taxamatch (Rees 2014). 
 
 ## II. Dependencies
 * **TNRS MySQL database**
