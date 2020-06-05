@@ -6,9 +6,7 @@ TNRSbatch API is an API wrapper for TNRSbatch, a command line adaption of the  [
 
 ## II. Dependencies
 * **TNRS MySQL database**
-   * Version 4.0 (tnrs4)
-   * See `
-   * See `tnrs3_db_scripts/` in `https://github.com/iPlantCollaborativeOpenSource/TNRS`
+   * Repo `https://github.com/ojalaquellueva/tnrs_db`
 * **TNRSbatch**
    * Must use fork:  
     `https://github.com/ojalaquellueva/TNRSbatch`.
@@ -88,8 +86,8 @@ Repeat for directories tnrs_batch and data.
 #### 8. Build tnrs database or install from mysqldump
 * Create and populate the database
 * Create MySQL user tnrs with read-only access on the TNRS database
-* Code and documentation for creating TNRS database at `https://github.com/iPlantCollaborativeOpenSource/TNRS/tree/master/tnrs3_db_scripts`
-* Warning: PHP code for TNRS DB may need update to PHP7
+* Use repo `https://github.com/ojalaquellueva/tnrs_db`
+* Do not use `https://github.com/iPlantCollaborativeOpenSource/TNRS/tree/master/tnrs3_db_scripts` (deprecated).
 
 #### 9. Update TNRS database, user and password parameters in TNRSbatch config file
 * See `https://github.com/ojalaquellueva/TNRSbatch`
