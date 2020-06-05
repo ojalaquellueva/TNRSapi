@@ -17,6 +17,7 @@ require_once($utilities_path."status_codes.php");
 
 // Temporary data directory
 $data_dir_tmp = $DATADIR;
+$data_dir_tmp = "/tmp/tnrs";
 
 // Input file name & path
 // User JSON input saved to this file as pipe-delimited text
@@ -172,9 +173,21 @@ if ($err) goto err;
 // Processing mode
 if ( $mode == "parse" ) {
 //if(stripos($mode, "parse") !== false) {
-	$mode2 = "-mode parse";	// Parse-only mode
+	$opt_mode = "-mode parse";	// Parse-only mode
 } else {
-	$mode2 = ""; 		// Default 'resolve' mode
+	$opt_mode = ""; 		// Default 'resolve' mode
+}
+
+// Match mode
+if ( $matches == "all" ) {
+//if(stripos($mode, "parse") !== false) {
+	$opt_matches = "-matches all";	// Return all matches
+} else {
+	$opt_matches = ""; 				// Returns best match only by default
+}
+# Parse-only over-rides matches
+if ( $mode == "parse" ) {
+	$opt_matches = ""; 		
 }
 
 ///////////////////////////////////////////
@@ -215,7 +228,9 @@ if ($status) {
 
 $data_dir_tmp_full = $data_dir_tmp . "/";
 // Testing with hard-coded options for now
-$cmd = $BATCH_DIR . "controller.pl -in '$file_tmp'  -out '$results_file' -sources '$sources' -class $class -nbatch $NBATCH -d t $mode2 ";
+$cmd = $BATCH_DIR . "controller.pl $opt_mode $opt_matches -in '$file_tmp'  -out '$results_file' -sources '$sources' -class $class -nbatch $NBATCH -d t ";
+// For testing without $opt_mode
+//$cmd = $BATCH_DIR . "controller.pl -in '$file_tmp'  -out '$results_file' -sources '$sources' -class $class -nbatch $NBATCH -d t  ";
 exec($cmd, $output, $status);
 if ($status) {
 	$err_msg="ERROR: tnrs_batch exit status: $status\r\n";

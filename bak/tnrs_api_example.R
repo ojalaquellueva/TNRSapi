@@ -6,36 +6,35 @@
 library(RCurl) # API requests
 library(jsonlite) # JSON coding/decoding
 
-# URL for TNRS api
-# Uncomment whichever is applicable
-url = "https://tnrsapidev.xyz/tnrs_api.php"  								# Production
-url = "http://vegbiendev.nceas.ucsb.edu:8975/tnrs_api.php" # Development
+# URL for GNRS API
+url = "https://tnrsapidev.xyz/tnrs_api.php"
 
-# Read in example file of taxon names
+# Read in example file of political division names
+# See the BIEN website for details on how to organize input file:
+# http://bien.nceas.ucsb.edu/bien/tools/gnrs/gnrs-input-format/
 data <- read.csv("tnrs_testfile.csv", header=FALSE)
 
 # Inspect the input
 head(data,10)
 
 # Uncomment this to work with smaller sample of the data
-data <- head(data,10)
+#data <- head(data,10)
 
 # Convert the data to JSON
 data_json <- jsonlite::toJSON(unname(data))
 
 #################################
-# Example 1: Resolve mode, best match only
+# Example 1: Resolve mode
 #################################
 
 # Set the TNRS options
 sources <- "tpl,gcc,ildis,tropicos,usda"	# Taxonomic sources
 class <- "tropicos"										# Family classification
 mode <- "resolve"										# Processing mode
-matches <- "best"											# Return best match only
 
 # Convert the options to data frame and then JSON
-opts <- data.frame(c(sources),c(class), c(mode), c(matches))
-names(opts) <- c("sources", "class", "mode", "matches")
+opts <- data.frame(c(sources),c(class), c(mode))
+names(opts) <- c("sources", "class", "mode")
 opts_json <-  jsonlite::toJSON(opts)
 opts_json <- gsub('\\[','',opts_json)
 opts_json <- gsub('\\]','',opts_json)
@@ -62,60 +61,20 @@ rownames(results) <- NULL
 # Inspect the results
 head(results, 10)
 
-# Just compare name submitted, name matched and final accepted name
-results $match.score <- format(round(as.numeric(results $Overall_score),2), nsmall=2)
-results[ , c('Name_submitted', 'match.score', 'Name_matched', 'Taxonomic_status', 'Accepted_name')]
-
-# Display header plus one row vertically
+# That's a lot of columns. Let's display header plus two rows vertically
 # to get a better understanding of the output fields
 results.t <- as.data.frame( t( results[,1:ncol(results)] ) )
-results.t[,3,drop =FALSE]
+results.t[,1:3,drop =FALSE]
+
+# Make new data frame of best matches only
+results.best <- results[results$Overall_score_order==1, ]
+results.best$match.score <- format(round(as.numeric(results.best$Overall_score),2), nsmall=2)
+
+# Compare name submitted, name matched and final accepted name
+results.best[ , c('Name_submitted', 'match.score', 'Name_matched', 'Taxonomic_status', 'Accepted_name')]
 
 #################################
-# Example 2: Resolve mode, all matches
-#################################
-
-# Set the TNRS options
-sources <- "tpl,gcc,ildis,tropicos,usda"	# Taxonomic sources
-class <- "tropicos"										# Family classification
-mode <- "resolve"										# Processing mode
-matches <- "all"											# Return all matches
-
-# Convert the options to data frame and then JSON
-opts <- data.frame(c(sources),c(class), c(mode), c(matches))
-names(opts) <- c("sources", "class", "mode", "matches")
-opts_json <-  jsonlite::toJSON(opts)
-opts_json <- gsub('\\[','',opts_json)
-opts_json <- gsub('\\]','',opts_json)
-
-# Combine the options and data into single JSON object
-input_json <- paste0('{"opts":', opts_json, ',"data":', data_json, '}' )
-
-# Construct the request
-headers <- list('Accept' = 'application/json', 'Content-Type' = 'application/json', 'charset' = 'UTF-8')
-
-# Send the API request
-results_json <- postForm(url, .opts=list(postfields= input_json, httpheader=headers))
-
-# Convert JSON results to a data frame
-results <-  jsonlite::fromJSON(results_json)
-
-# Clean up results  
-results<-gsub(pattern = '"',replacement = "",x = results)
-results<-as.data.frame(results,stringsAsFactors = F) 
-colnames(results) <- as.character(results[1,]) 
-results <- results[-1,] 
-rownames(results) <- NULL	  
-
-# Inspect the results
-head(results, 10)
-
-# Just compare name submitted, name matched and final accepted name
-results $match.score <- format(round(as.numeric(results $Overall_score),2), nsmall=2)
-results[ , c('ID', 'Name_submitted', 'match.score', 'Name_matched', 'Taxonomic_status', 'Accepted_name')]
-
-#################################
-# Example 3: Parse mode
+# Example 2: Parse mode
 #################################
 
 # Let's just parse the names instead
@@ -147,6 +106,6 @@ rownames(results) <- NULL
 # Inspect the results
 head(results, 10)
 
-# Display header and two rows vertically
+# Display header and three rows vertically
 results.t <- as.data.frame( t( results[,1:ncol(results)] ) )
-results.t[,2:3,drop =FALSE]
+results.t[,9:11,drop =FALSE]

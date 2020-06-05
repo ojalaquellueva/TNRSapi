@@ -32,7 +32,8 @@ $lines = 10000000000;
 $lines = 15;
 
 // api base url 
-$base_url = "https://tnrsapidev.xyz/tnrs_api.php";
+$base_url = "https://tnrsapidev.xyz/tnrs_api.php";		// production
+$base_url = "http://vegbiendev.nceas.ucsb.edu:8975/tnrs_api.php";	// development
 
 /////////////////////////////////////////
 // TNRS options
@@ -67,6 +68,7 @@ $mode="resolve";
 // 	Options: best*|all
 // 	Over-ride command line option -m
 $matches="best";
+$matches="all";
 
 // Match accuracy (NOT IMPLEMENTED)
 // Must be decimal from 0.05 (default) to 1
