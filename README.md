@@ -7,6 +7,7 @@ TNRSbatch API is an API wrapper for TNRSbatch, a command line adaption of the  [
 ## II. Dependencies
 * **TNRS MySQL database**
    * Version 4.0 (tnrs4)
+   * See `
    * See `tnrs3_db_scripts/` in `https://github.com/iPlantCollaborativeOpenSource/TNRS`
 * **TNRSbatch**
    * Must use fork:  
