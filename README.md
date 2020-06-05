@@ -128,6 +128,7 @@ The API accepts the following TNRS options, which must be converted to JSON and 
 | sources | Taxonomic sources | tpl,gcc,ildis,tropicos,usda,ncbi | tpl,gcc,ildis,tropicos,usda | Can be combined, with comma delimiters
 | class | Family classification | tropicos,ncbi | tropicos | tropicos is euqivalent to APG III
 | mode | Processing mode | resolve,parse | resolve | Parse-only mode separates name components. Resolve mode parses, matches to a published name and resolves synonyms to accepted name.
+| matches | Matches to return | best,all | best | Return either the single best match to a name, or all matches above the minimum match threshold
 
 #### PHP Example
 
