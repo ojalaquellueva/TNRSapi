@@ -48,6 +48,7 @@ include $utilities_path."sql_functions.inc";
 $timer_on=$utilities_path."timer_on.inc";
 $timer_off=$utilities_path."timer_off.inc";
 
+
 //////////////////////////////////////////////////
 // All TNRS options
 // Use to test if submitted options allowed
@@ -56,7 +57,7 @@ $timer_off=$utilities_path."timer_off.inc";
 # Am now treating this option as equivalent to a RESTful API "route"
 # Options "resolve" & "parse" go to TNRSbatch, but other options
 # query database directly
-$TNRS_MODES = array("resolve","parse","meta","sources","citations");
+$TNRS_MODES = array("resolve","parse","meta");
 
 # Sources are now only "tropicos","tpl","usda" but leaving as-is for
 # backward compatibility. TNRSbatch will ignore the now non-extistent

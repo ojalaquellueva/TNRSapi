@@ -122,7 +122,7 @@ if (!is_array($input_array)) {
 }
 
 ///////////////////////////////////////////
-// Extract & validate options and data
+// Extract & validate options
 ///////////////////////////////////////////
 
 // Get options and data from JSON
@@ -130,6 +130,30 @@ if ( ! ( $opt_arr = isset($input_array['opts'])?$input_array['opts']:false ) ) {
 	$err_msg="ERROR: No TNRS options (element 'opts' in JSON request)\r\n";	
 	$err_code=400; goto err;
 }
+
+///////////////////////////////////////////
+// Validate options and assign each to its 
+// own parameter
+///////////////////////////////////////////
+
+include $APP_DIR . "validate_options.php";
+if ($err) goto err;
+
+///////////////////////////////////////////
+// Check option $mode
+// If "meta", ignore other options and begin
+// processing metadata request. Otherwise 
+// continue processing TNRSbatch request
+///////////////////////////////////////////
+
+if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
+// TNRSbatch (no indent)
+	
+///////////////////////////////////////////
+// Extract & validate data
+///////////////////////////////////////////
+
+// Get data from JSON
 if ( !( $data_arr = isset($input_array['data'])?$input_array['data']:false ) ) {
 	$err_msg="ERROR: No data (element 'data' in JSON request)\r\n";	
 	$err_code=400; goto err;
@@ -157,13 +181,6 @@ foreach ($data_arr as $row) {
 if ($rows==0) {
 	$err_msg="ERROR: No data rows!\r\n"; $err_code=400; goto err; 
 }
-
-///////////////////////////////////////////
-// Validate TNRS options
-///////////////////////////////////////////
-
-include $APP_DIR . "validate_options.php";
-if ($err) goto err;
 
 ///////////////////////////////////////////
 // Reset selected options for compatibility 
@@ -353,6 +370,34 @@ foreach ($results_array as $row) {
 	
 	$n++;
 }
+
+} elseif ( $mode=="meta" ) { // CONTINUE mode_if 
+	$sql="
+	SELECT db_version, build_date, code_version
+	FROM meta
+	;
+	";
+	include("qy_db.php");
+} elseif ( $mode=="sources" ) { // CONTINUE mode_if 
+	$sql="
+	SELECT sourceID, sourceName, sourceNameFull, sourceUrl,
+	sourceVersion as version, sourceReleaseDate, 
+	dateAccessed AS tnrsDateAccessed
+	FROM source
+	;
+	";
+	include("qy_db.php");
+} elseif ( $mode=="citations" ) { // CONTINUE mode_if 
+	$sql="
+	SELECT 'tnrs' AS source, citation
+	FROM meta
+	UNION ALL
+	SELECT sourceName AS source, citation
+	FROM source
+	;
+	";
+	include("qy_db.php");
+}	// END mode_if
 
 $results_json = json_encode($results_array);
 

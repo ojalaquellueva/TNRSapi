@@ -49,12 +49,10 @@ $base_url = "http://vegbiendev.nceas.ucsb.edu:8975/tnrs_api.php";	// development
 // Processing mode
 //	Options: resolve*|parse|meta
 // 	E.g., $mode="parse"
-$mode="resolve";	# Resolve names with TNRSbatch
-//$mode="";		// Same as $mode="resolve";
 $mode="parse";		# Parse names with TNRSbatch
+$mode="resolve";	# Resolve names with TNRSbatch
 $mode="meta";		# Return metadata on TNRS & sources
-$mode="citations";		# Return metadata on TNRS & sources
-$mode="sources";		# Return metadata on TNRS & sources
+//$mode="";		// Same as $mode="resolve";
 
 // Taxonomic sources
 // One or more of the following, separated by commas, no spaces:
@@ -147,19 +145,17 @@ $data_arr = array_map('str_getcsv', file($DATADIR.$inputfilename));
 # Get subset
 $data_arr = array_slice($data_arr, 0, $lines);
 
-if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) {
-	// Echo raw data
-	echo "The raw data:\r\n";
-	foreach($data_arr as $row) {
-		foreach($row as $key => $value) echo "$value\t"; echo "\r\n";
-	}
-	echo "\r\n";
+// Echo raw data
+echo "The raw data:\r\n";
+foreach($data_arr as $row) {
+	foreach($row as $key => $value) echo "$value\t"; echo "\r\n";
+}
+echo "\r\n";
 
-	if ($disp_data_array) {
-		echo "The raw data as array:\r\n";
-		var_dump($data_arr);
-		echo "\r\n";
-	}
+if ($disp_data_array) {
+	echo "The raw data as array:\r\n";
+	var_dump($data_arr);
+	echo "\r\n";
 }
 
 ///////////////////////////////
@@ -196,7 +192,8 @@ if ($disp_opts) {
 		($opts['constr_ht']==true?"true":"false") : "false";
 	$constr_ts_disp = isset($opts['constr_ts']) ?
 		($opts['constr_ts']==true?"true":"false") : "false";
-	$mode_disp = isset($opts['mode']) ? $mode : "resolve";
+	$mode_disp = isset($opts['mode']) ?
+		($opts['mode']=="parse"?"parse":"resolve") : "resolve";
 	
 	// Echo the options
 	echo "TNRS options:\r\n";
@@ -258,20 +255,16 @@ if ($disp_results_json) {
 	echo "\r\n\r\n";
 }
 
-if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) {
-	// Some additional processing
+if ($disp_results_array) {
+	echo "API results as array:\r\n";
+	var_dump($results);
+	echo "\r\n\r\n";
+}
 
-	if ($disp_results_array) {
-		echo "API results as array:\r\n";
-		var_dump($results);
-		echo "\r\n\r\n";
-	}
-
-	if ($disp_results_csv) {
-		echo "API results as CSV:\r\n";
-		foreach($results as $result) {
-			echo implode(",", array_slice($result, 0)) . "\r\n";
-		}
+if ($disp_results_csv) {
+	echo "API results as CSV:\r\n";
+	foreach($results as $result) {
+		echo implode(",", array_slice($result, 0)) . "\r\n";
 	}
 }
 

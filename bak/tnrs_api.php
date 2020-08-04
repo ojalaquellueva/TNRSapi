@@ -17,6 +17,7 @@ require_once($utilities_path."status_codes.php");
 
 // Temporary data directory
 $data_dir_tmp = $DATADIR;
+$data_dir_tmp = "/tmp/tnrs";
 
 // Input file name & path
 // User JSON input saved to this file as pipe-delimited text
@@ -37,9 +38,25 @@ $results_file = $data_dir_tmp . $results_filename;
 // Functions
 ///////////////////////////////////
 
-// Loads a tab separated text file as array
-// Use option $load_keys=true only if file has header
-function load_tabbed_file($filepath, $load_keys=false) {
+////////////////////////////////////////////////////////
+// Loads results file as an array, with option to keep 
+// best match only
+// 
+// Option $best_match=true treats the value in the first 
+// column as an array key, and keeps only the last of a 
+// series of lines bearing the same key. Assuming the 
+// file has already been sorted with best match for each 
+// name last, $best_match=true keeps best match only. 
+// In other words, results file MUST be already sorted!
+// 
+// Options:
+//	$filepath: path and name of file to import
+//	$delim: file field delimiter
+//	$best_match: 
+//		true="keep best match only" (default)
+//		false="keep all matches"
+////////////////////////////////////////////////////////
+function results_to_array($filepath, $delim, $best_match=true) {
     $array = array();
  
     if (!file_exists($filepath)){ return $array; }
@@ -47,12 +64,17 @@ function load_tabbed_file($filepath, $load_keys=false) {
  
     for ($x=0; $x < count($content); $x++){
         if (trim($content[$x]) != ''){
-            $line = explode("\t", trim($content[$x]));
-            if ($load_keys){
-                $key = array_shift($line);
-                $array[$key] = $line;
+            $line = explode($delim, trim($content[$x]));
+            if ($best_match) {
+                // This has the effect of keeping only the last in a 
+                // series of rows bearing the same ID, where ID is in
+                // the first column
+                $key = $line[0];
+                //$key = array_shift($line); // Omits first column
+                 $array[$key] = $line; 
+            } else { 
+            	$array[] = $line;
             }
-            else { $array[] = $line; }
         }
     }
     return $array;
@@ -65,6 +87,8 @@ function load_tabbed_file($filepath, $load_keys=false) {
 // Start by assuming no errors
 // Any run time errors and this will be set to true
 $err_code=0;
+$err_msg="";
+$err=false;
 
 // Make sure request is a POST
 if (strcasecmp($_SERVER['REQUEST_METHOD'], 'POST') != 0) {
@@ -139,6 +163,7 @@ if ($rows==0) {
 ///////////////////////////////////////////
 
 include $APP_DIR . "validate_options.php";
+if ($err) goto err;
 
 ///////////////////////////////////////////
 // Reset selected options for compatibility 
@@ -148,9 +173,21 @@ include $APP_DIR . "validate_options.php";
 // Processing mode
 if ( $mode == "parse" ) {
 //if(stripos($mode, "parse") !== false) {
-	$mode2 = "-mode parse";	// Parse-only mode
+	$opt_mode = "-mode parse";	// Parse-only mode
 } else {
-	$mode2 = ""; 		// Default 'resolve' mode
+	$opt_mode = ""; 		// Default 'resolve' mode
+}
+
+// Match mode
+if ( $matches == "all" ) {
+//if(stripos($mode, "parse") !== false) {
+	$opt_matches = "-matches all";	// Return all matches
+} else {
+	$opt_matches = ""; 				// Returns best match only by default
+}
+# Parse-only over-rides matches
+if ( $mode == "parse" ) {
+	$opt_matches = ""; 		
 }
 
 ///////////////////////////////////////////
@@ -191,7 +228,9 @@ if ($status) {
 
 $data_dir_tmp_full = $data_dir_tmp . "/";
 // Testing with hard-coded options for now
-$cmd = $BATCH_DIR . "controller.pl -in '$file_tmp'  -out '$results_file' -sources '$sources' -class $class -nbatch $NBATCH -d t $mode2 ";
+$cmd = $BATCH_DIR . "controller.pl $opt_mode $opt_matches -in '$file_tmp'  -out '$results_file' -sources '$sources' -class $class -nbatch $NBATCH -d t ";
+// For testing without $opt_mode
+//$cmd = $BATCH_DIR . "controller.pl -in '$file_tmp'  -out '$results_file' -sources '$sources' -class $class -nbatch $NBATCH -d t  ";
 exec($cmd, $output, $status);
 if ($status) {
 	$err_msg="ERROR: tnrs_batch exit status: $status\r\n";
@@ -208,8 +247,16 @@ if ($status) {
 // file and convert to JSON
 ///////////////////////////////////
 
+// TESTING
+// Count line in raw output file
+$lines_raw = count(file($results_file)) - 1;
+
 // Import the results file (tab-delimitted) to array
-$results_array = load_tabbed_file($results_file, true);
+// Set third parameter to true to keep best match only for each name,
+// or false to keep all matches
+//$results_array = load_tabbed_file($results_file, false);
+$best_only=$matches=="best"?true:false;
+$results_array = results_to_array($results_file, "\t", $best_only);
 
 // Convert to simple indexed array
 $results_array = array_values($results_array); 	
@@ -220,6 +267,7 @@ $results_array = array_values($results_array);
 if ($mode=="parse") {
 	// Fix header of parse-only results
 	$results_array[0]=array(
+	'ID',
 	'Name_submitted',
 	'Family',
 	'Genus',
@@ -240,37 +288,37 @@ if ($mode=="parse") {
 
 // Set column number for "Unmatched_terms"
 if ($mode=="parse") {
-	$umt_col = 10;
+	$umt_col = 11;
 } elseif ($mode=="resolve" || $mode=="" ) {
-	$umt_col = 27;
+	$umt_col = 28;
 }
 
 $n = 0;
 foreach ($results_array as $row) {	
 	///////////////////////////////////
-	// Name_sumbitted (column 0)
+	// Name_sumbitted (column 1)
 	///////////////////////////////////
 	
 	// First single quote
-	$old = $results_array[$n][0];
+	$old = $results_array[$n][1];
 	$ptn = "/^\"'/";
 	$repl = "\"";
 	$new = 	preg_replace($ptn, $repl, $old);
-	$results_array[$n][0] = $new;
+	$results_array[$n][1] = $new;
 	
 	// Last single quote
-	$old = $results_array[$n][0];
+	$old = $results_array[$n][1];
 	$ptn = "/'\"$/";
 	$repl = "\"";
 	$new = 	preg_replace($ptn, $repl, $old);
-	$results_array[$n][0] = $new;
+	$results_array[$n][1] = $new;
 
 	// Escapes of embedded single quotes, if any
-	$old = $results_array[$n][0];
+	$old = $results_array[$n][1];
 	$ptn = "/'\\\'/";
 	$repl = "";
 	$new = 	preg_replace($ptn, $repl, $old);
-	$results_array[$n][0] = $new;
+	$results_array[$n][1] = $new;
 	
 	///////////////////////////////////
 	// Unmatched_terms
@@ -315,6 +363,8 @@ $results_json = json_encode($results_array);
 header('Content-type: application/json');
 echo $results_json;
 //echo "sources='$sources_bak', class='$class_bak', mode='$mode_bak'";
+//echo "n=$n";
+//echo "\r\nlines_raw=$lines_raw, n=$n";
 
 ///////////////////////////////////
 // Error: return http status code
