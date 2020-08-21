@@ -12,7 +12,7 @@
 // Parameters
 ///////////////////////////////////
 
-require_once 'params.php';
+require 'params.php';
 require_once($utilities_path."status_codes.php");
 
 // Temporary data directory

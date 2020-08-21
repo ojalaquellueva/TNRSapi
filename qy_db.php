@@ -6,6 +6,13 @@
 
 include $CONFIG_DIR.'db_config.php';
 
+// On error, display SQL if request (turn off for production!)
+if ( $err_show_sql ) {
+	$sql_disp = " SQL: " . $sql;
+} else {
+	$sql_disp = "";
+}
+
 // connect to the db
 $link = mysqli_connect($HOST,$USER,$PWD,$DB);
 
@@ -15,7 +22,7 @@ if (mysqli_connect_errno()) {
 	exit();
 }
 
-$qy = mysqli_query($link,$sql) or die('Query failed! SQL: '.$sql);
+$qy = mysqli_query($link,$sql) or die('Query failed!'.$sql_disp);
 
 // create one master array of the records
 $results_array = array();

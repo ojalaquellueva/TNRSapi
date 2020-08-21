@@ -4,6 +4,10 @@
 // API parameters
 /////////////////////////////////////////////////
 
+// Return offending SQL on error? (true|false)
+// TURN OFF FOR PRODUCTION! ($err_show_sql=false)
+$err_show_sql=false;
+
 // Maximum permitted input rows per request
 // For no limit, set to 0
 $MAX_ROWS=5000;	
