@@ -1,21 +1,37 @@
 # TNRSbatch API
 
-## I. Introduction
+## Contents
 
-TNRSbatch API is an API wrapper for TNRSbatch, a command line adaption of the  [Taxonomic Name Resolution Service (TNRS) web interface](http://tnrs.iplantcollaborative.org/) (Boyle 2013). For information on TNRSbatch, see the [TNRSbatch repo](https://github.com/ojalaquellueva/TNRSbatch). For information on the original TNRS code base, see <https://github.com/iPlantCollaborativeOpenSource/TNRS>. Also see References (at end) for information on component applications GN Parser (Mozzherin 2008) and Taxamatch (Rees 2014). 
+[Introduction](#introduction)  
+[Dependencies](#dependencies)  
+[Required OS and software](#software)  
+[Setup & configuration](#setup)  
+[Usage](#usage)  
+[Example scripts](#examples)  
+[Related applications](#related)  
+[References](#references)  
 
-## II. Dependencies
+<a name="introduction"></a>
+## Introduction
+
+TNRSbatch API is an API wrapper for TNRSbatch, a command line adaption of the  [Taxonomic Name Resolution Service (TNRS) web interface](http://tnrs.iplantcollaborative.org/) (Boyle 2013). For information on TNRSbatch, see the [TNRSbatch repo](https://github.com/ojalaquellueva/TNRSbatch). For information on the original TNRS code base, see <https://github.com/iPlantCollaborativeOpenSource/TNRS>. Also see [References](#references) for information on component applications GN Parser (Mozzherin 2008) and Taxamatch (Rees 2014). 
+
+R users may prefer to use the [RTNRS R package](https://github.com/EnquistLab/RTNRS), which queries the [BIEN instance of TNRSbatch](https://bien.nceas.ucsb.edu/bien/tools/tnrs/) via the TNRS API.
+
+<a name="dependencies"></a>
+## Dependencies
 * **TNRS MySQL database**
    * Repo `https://github.com/ojalaquellueva/tnrs_db`
 * **TNRSbatch**
    * Must use fork:  
-    `https://github.com/ojalaquellueva/TNRSbatch`.
+    [https://github.com/ojalaquellueva/TNRSbatch](ttps://github.com/ojalaquellueva/TNRSbatch)
 * **GN parser** 
    * Version: 'biodiversity'
-   * Repo: `https://github.com/GlobalNamesArchitecture/biodiversity`
-   * Run as socket server. See `https://github.com/ojalaquellueva/TNRSbatch` for details.
+   * Repo: [https://github.com/GlobalNamesArchitecture/biodiversity](https://github.com/GlobalNamesArchitecture/biodiversity)
+   * Run as socket server. See [https://github.com/ojalaquellueva/TNRSbatch](https://github.com/ojalaquellueva/TNRSbatch) for details.
 
-## III. Required OS and software
+<a name="software"></a>
+## Required OS and software
 * Ubuntu 18.04.2 LTS
 * Perl 5.26.1
 * PHP 7.2.19
@@ -33,16 +49,20 @@ PHP extensions:
   * php-json
   * php-services-json
 
-### IV. API Setup
 
-#### 1.Create the following directory structure under /var/www/:
+<a name="setup"></a>
+## Setup & configuration
 
+#### 1. Create the following directory structure under /var/www/:
+
+```
 tnrs  
 |__api  
 |__data  
 |__tnrs_batch  
+```
 
-* Command line application tnrs_batch may be run from other locations. Adjust API parameters and Virtual Host directives accordingly.
+* Command line application `tnrs_batch` may be run from other locations. Adjust API parameters and Virtual Host directives accordingly.
 
 #### 2. Download contents of this respository to api:
 
@@ -75,22 +95,24 @@ sudo chmod -R 774 /var/www/tnrs/api
 sudo chmod -R g+s /var/www/tnrs/api
 ```
 
-Repeat for directories tnrs_batch and data.
+Repeat for directories `tnrs_batch` and `data`.
 
 #### 6. Set up Apache Virtual Host with /var/www/tnrs/api as DocumentRoot
-* Example: `https://www.digitalocean.com/community/tutorials/how-to-set-up-apache-virtual-hosts-on-ubuntu-16-04`
+* Tutorial:   
+   [https://www.digitalocean.com/community/tutorials/how-to-set-up-apache-virtual-hosts-on-ubuntu-16-04](https://www.digitalocean.com/community/tutorials/how-to-set-up-apache-virtual-hosts-on-ubuntu-16-04)
 
-#### 7. Set up SSL if desired/required
-* Example using Let's Encrypt: `https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-16-04`
+#### 7. Set up SSL
+* Tutorial (using Let's Encrypt):  
+  [https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-16-04](https://www.digitalocean.com/community/tutorials/how-to-secure-apache-with-let-s-encrypt-on-ubuntu-16-04).
 
 #### 8. Build tnrs database or install from mysqldump
 * Create and populate the database
 * Create MySQL user tnrs with read-only access on the TNRS database
-* Use repo `https://github.com/ojalaquellueva/tnrs_db`
-* Do not use `https://github.com/iPlantCollaborativeOpenSource/TNRS/tree/master/tnrs3_db_scripts` (deprecated).
+* Use repo [`https://github.com/ojalaquellueva/tnrs_db`](https://github.com/ojalaquellueva/tnrs_db)
+* Do not use [`https://github.com/iPlantCollaborativeOpenSource/TNRS/tree/master/tnrs3_db_scripts`](https://github.com/iPlantCollaborativeOpenSource/TNRS/tree/master/tnrs3_db_script) (deprecated).
 
 #### 9. Update TNRS database, user and password parameters in TNRSbatch config file
-* See `https://github.com/ojalaquellueva/TNRSbatch`
+* See [https://github.com/ojalaquellueva/TNRSbatch](https://github.com/ojalaquellueva/TNRSbatch)
 
 #### 10. Start parser as socket server
 
@@ -100,7 +122,8 @@ nohup parserver &
 <ctrl>+C
 ```
 
-## V. Usage
+<a name="usage"></a>
+## Usage
 
 #### Input data
 
@@ -129,23 +152,40 @@ The API accepts the following TNRS options, which must be converted to JSON and 
 | mode | Processing mode | resolve,parse | resolve | Parse-only mode separates name components. Resolve mode parses, matches to a published name and resolves synonyms to accepted name.
 | matches | Matches to return | best,all | best | Return either the single best match to a name, or all matches above the minimum match threshold
 
-#### PHP Example
 
-Example syntax for interacting with API using php_curl is given in tnrs_api_example.php. To run the test script:
+<a name="examples"></a>
+## Example scripts
+
+#### PHP
+
+Example syntax for interacting with API using php\_curl is given in `tnrs_api_example.php`. To run the test script:
 
 ```
 php tnrs_api_example.php
 ```
-* Adjust parameters as desired in file params.php
-* Also see API parameters section at start of tnrs_api_example.php
-* For TNRS options and defaults, see params.php
-* Make sure that test file (testfile.csv) is available in $DATADIR (as set in params.php)
+* Adjust parameters as desired in file `params.php`
+* Also see API parameters section at start of `tnrs_api_example.php`
+* For TNRS options and defaults, see `params.php`
+* Make sure that input file (`tnrs_testfile.csv`) is available in `$DATADIR` (as set in `params.php`)
 
-#### R Example
+#### R
 
-For an example of accessing the TNRS API in R, see: `http://bien.nceas.ucsb.edu/bien/tools/tnrs/tnrs-api-r-example/`
+* See example script `tnrs_api_example.R`. 
+* Make sure that input file (`tnrs_testfile.csv`) is available in the same directory as the R script, or adjust file path in the R code.
 
-## VI. References
+<a name="related"></a>
+## Related applications
+* **TNRS batch:**  
+  [https://github.com/ojalaquellueva/TNRSbatch](https://github.com/ojalaquellueva/TNRSbatch)
+* **TNRS database:**   
+  [https://github.com/ojalaquellueva/tnrs_db](https://github.com/ojalaquellueva/tnrs_db)
+* **RTNRS R package:**  
+﻿ [https://github.com/EnquistLab/RTNRS](https://github.com/EnquistLab/RTNRS)
+* **GN parser:**   
+   [https://github.com/GlobalNamesArchitecture/biodiversity](https://github.com/GlobalNamesArchitecture/biodiversity)
+
+<a name="references"></a>
+## References
 ﻿Boyle, B., N. Hopkins, Z. Lu, J. A. Raygoza Garay, D. Mozzherin, T. Rees, N. Matasci, M. L. Narro, W. H. Piel, S. J. Mckay, S. Lowry, C. Freeland, R. K. Peet, and B. J. Enquist. 2013. The taxonomic name resolution service: An online tool for automated standardization of plant names. BMC Bioinformatics 14(1):16.
 
 Mozzherin, D. Y. 2008. GlobalNamesArchitecture/biodiversity: Scientific Name Parser. https:// github.com/GlobalNamesArchitecture/biodiversity. Accessed 15 Sep 2017

@@ -17,7 +17,7 @@ require_once("includes/php/status_codes.php");
 require_once 'params.php';	// parameters in ALL_CAPS set here
 
 // Path and name of file containing input names and political divisions
-$inputfilename = "testfile.csv";
+$inputfilename = "tnrs_testfile.csv";
 
 // Desired response format
 //	Options: json*|xml
