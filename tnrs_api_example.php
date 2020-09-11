@@ -8,6 +8,7 @@
 // 	 the process.
 //////////////////////////////////////////////////////
 
+// Load library of http status codes
 require_once("includes/php/status_codes.php");
 
 /////////////////////
@@ -49,12 +50,12 @@ $base_url = "http://vegbiendev.nceas.ucsb.edu:8975/tnrs_api.php";	// development
 // Processing mode
 //	Options: resolve*|parse|meta
 // 	E.g., $mode="parse"
-$mode="resolve";	# Resolve names with TNRSbatch
+$mode="resolve";	# Resolve names
 //$mode="";		// Same as $mode="resolve";
-$mode="parse";		# Parse names with TNRSbatch
-$mode="meta";		# Return metadata on TNRS & sources
-$mode="citations";		# Return metadata on TNRS & sources
-$mode="sources";		# Return metadata on TNRS & sources
+// $mode="parse";		# Parse names
+// $mode="meta";		# Return metadata on TNRS & sources
+$mode="sources";		# List TNRS sources
+// $mode="citations";		# Return citations for TNRS & sources
 
 // Taxonomic sources
 // One or more of the following, separated by commas, no spaces:
@@ -79,12 +80,12 @@ $matches="all";
 //	Do not enclose in quotes, except empty string for default
 $acc=0.05;
 
-// Constrain by higher taxonomy? (NOT IMPLEMENTED)
+// Constrain by higher taxonomy? (NOT YET IMPLEMENTED)
 //	Options: true|false*
 //	Boolean: do not enclose in quotes (except can use empty string for default)
 $constr_ht=false;
 
-// Constraint by taxonomic source? (NOT IMPLEMENTED)
+// Constraint by taxonomic source? (NOT YET IMPLEMENTED)
 //	Options: true|false*
 //	Boolean: do not enclose in quotes (except can use empty string for default)
 $constr_ts=false;
@@ -105,8 +106,9 @@ $disp_results_json=true;	// Echo results as array
 $disp_results_array=false;	// Echo results as array
 $disp_results_csv=true;		// Echo results as CSV text, for pasting to Excel
 $time=true;					// Echo time elapsed
+
 /////////////////////////////////////////////////////
-// Get command line options
+// Command line options
 // Use to over-ride the above parameters
 /////////////////////////////////////////////////////
 
@@ -121,21 +123,22 @@ $matches=isset($options["m"])?$options["m"]:"$TNRS_DEF_MATCHES";
 ////////////////////////////////////////////////////////////////
 
 include $timer_on; 	// Start the timer
+echo "\n";
 
 ///////////////////////////////
 // Make options array
 ///////////////////////////////
 
 $opts_arr = array(
-"sources"=>$sources, 
-"class"=>$class, 
-"mode"=>$mode,
-"acc"=>$acc, 
-"constr_ht"=>$constr_ht, 
-"constr_ts"=>$constr_ts,
-"matches"=>$matches,
-"batches"=>$batches
-);
+	"sources"=>$sources, 
+	"class"=>$class, 
+	"mode"=>$mode,
+	"acc"=>$acc, 
+	"constr_ht"=>$constr_ht, 
+	"constr_ts"=>$constr_ts,
+	"matches"=>$matches,
+	"batches"=>$batches
+	);
 
 ///////////////////////////////
 // Make data array
@@ -167,7 +170,7 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) {
 // json object for post
 ///////////////////////////////
 
-# Convert to JSON
+// Convert to JSON
 $json_data = json_encode(array('opts' => $opts_arr, 'data' => $data_arr));	
 
 ///////////////////////////////
@@ -258,24 +261,88 @@ if ($disp_results_json) {
 	echo "\r\n\r\n";
 }
 
-if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) {
-	// Some additional processing
-
-	if ($disp_results_array) {
-		echo "API results as array:\r\n";
-		var_dump($results);
-		echo "\r\n\r\n";
-	}
-
-	if ($disp_results_csv) {
-		echo "API results as CSV:\r\n";
-		foreach($results as $result) {
-			echo implode(",", array_slice($result, 0)) . "\r\n";
-		}
-	}
+if ($disp_results_array) {
+	echo "API results as array:\r\n";
+	var_dump($results);
+	echo "\r\n\r\n";
 }
 
-echo "\r\n";
+if ($disp_results_csv) {
+	echo "API results as CSV (for pasting to spreadsheet):\r\n";
+
+	if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) {
+		foreach($results as $result) {
+			$line = implode(",", array_slice($result, 0)) . "\r\n";
+			print_r($line);
+		}
+	} else {
+		$table = array_to_csv($results,",");
+		echo $table;
+	}
+	echo "\n";
+}
+
+
+function array_to_csv($arr,$delim) {
+	#############################################
+	# Converts nested array to a 'table array',
+	# with each element a delimited string,
+	# the delimiters separating cells
+	# Assumes first row is header
+	#############################################
+
+	# Extract header
+	$header = csv_header($arr,$delim);
+	$header = preg_split("/[\f\r\n]+/",$header ); # convert string to array
+	$header = array_unique($header);	# get unique lines
+	$header = implode("", $header);	# convert back to string
+	
+	# Extract cells
+	$rows = csv_rows($arr,$delim);
+	$rows = preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "\n", $rows);
+	
+	# Combine header and table
+	$table = $header . "\n" . $rows;
+	return($table);
+}
+
+function csv_header($arr,$delim) { 
+	# Extract  ultimate elements header
+	$return = "";
+	
+	foreach ($arr as $key => $value) {
+	//$return .= "$key: ";
+		if (is_array($value)) {
+			$return .= csv_header($value,$delim);
+		} else {
+			$return .= $key.$delim;
+		}
+		$return .= "";
+	}
+	
+	$return = rtrim(trim($return), $delim);
+	$return .= "\n";
+	return($return);
+}
+
+function csv_rows($arr,$delim) {
+	# Accumulate ultimate elements values as row
+	$return = "";
+
+	foreach ($arr as $key => $value) {
+		if (is_array($value)) {
+			$return .= csv_rows($value,$delim);
+		} else {
+			$return .= $value.$delim;
+		}
+		$return .= "";
+	}
+	
+	$return = rtrim(trim($return), $delim);
+	$return .= "\n";
+	return($return);
+}
+
 
 ///////////////////////////////////
 // Echo time elapsed

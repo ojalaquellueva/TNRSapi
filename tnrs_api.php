@@ -394,6 +394,7 @@ foreach ($results_array as $row) {
 	UNION ALL
 	SELECT sourceName AS source, citation
 	FROM source
+	WHERE citation IS NOT NULL AND TRIM(citation)<>''
 	;
 	";
 	include("qy_db.php");
