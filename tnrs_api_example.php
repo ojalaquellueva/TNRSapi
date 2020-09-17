@@ -54,7 +54,7 @@ $mode="resolve";	# Resolve names
 //$mode="";		// Same as $mode="resolve";
 // $mode="parse";		# Parse names
 // $mode="meta";		# Return metadata on TNRS & sources
-$mode="sources";		# List TNRS sources
+//$mode="sources";		# List TNRS sources
 // $mode="citations";		# Return citations for TNRS & sources
 
 // Taxonomic sources

@@ -121,6 +121,13 @@ if (!is_array($input_array)) {
 	$err_code=400; goto err;
 }
 
+///////////////////////////////////
+// Inspect the JSON data and run 
+// safety/security checks
+///////////////////////////////////
+
+// UNDER CONSTRUCTION!
+
 ///////////////////////////////////////////
 // Extract & validate options
 ///////////////////////////////////////////
@@ -147,257 +154,265 @@ if ($err) goto err;
 ///////////////////////////////////////////
 
 if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
-// TNRSbatch (no indent)
+	// TNRSbatch (no indent)
 	
-///////////////////////////////////////////
-// Extract & validate data
-///////////////////////////////////////////
+	///////////////////////////////////////////
+	// Extract & validate data
+	///////////////////////////////////////////
 
-// Get data from JSON
-if ( !( $data_arr = isset($input_array['data'])?$input_array['data']:false ) ) {
-	$err_msg="ERROR: No data (element 'data' in JSON request)\r\n";	
-	$err_code=400; goto err;
-}
-
-# Check payload size
-$rows = count($data_arr);
-if ( $rows>$MAX_ROWS && $MAX_ROWS>0 ) {
-	$err_msg="ERROR: Requested $rows rows exceeds $MAX_ROWS row limit\r\n";	
-	$err_code=413;	# 413 Payload Too Large
-	goto err; 
-}
-
-# Valid data array structure
-# Should have 1 or more rows of exactly 2 elements each
-$rows=0;
-foreach ($data_arr as $row) {
-	$rows++;
-	$values=0;
-	foreach($row as $value) $values++;
-	if ($values<>2) {
-		$err_msg="ERROR: Data has wrong number of columns in one or more rows, should be exactly 2\r\n"; $err_code=400; goto err;
+	// Get data from JSON
+	if ( !( $data_arr = isset($input_array['data'])?$input_array['data']:false ) ) {
+		$err_msg="ERROR: No data (element 'data' in JSON request)\r\n";	
+		$err_code=400; goto err;
 	}
-}
-if ($rows==0) {
-	$err_msg="ERROR: No data rows!\r\n"; $err_code=400; goto err; 
-}
 
-///////////////////////////////////////////
-// Reset selected options for compatibility 
-// with TNRSbatch command line syntax
-///////////////////////////////////////////
+	# Check payload size
+	$rows = count($data_arr);
+	if ( $rows>$MAX_ROWS && $MAX_ROWS>0 ) {
+		$err_msg="ERROR: Requested $rows rows exceeds $MAX_ROWS row limit\r\n";	
+		$err_code=413;	# 413 Payload Too Large
+		goto err; 
+	}
 
-// Processing mode
-if ( $mode == "parse" ) {
-//if(stripos($mode, "parse") !== false) {
-	$opt_mode = "-mode parse";	// Parse-only mode
-} else {
-	$opt_mode = ""; 		// Default 'resolve' mode
-}
+	# Validate data array structure
+	# Should have 1 or more rows of exactly 2 elements each
+	$rows=0;
+	foreach ($data_arr as $row) {
+		$rows++;
+		$values=0;
+		foreach($row as $value) $values++;
+		if ($values<>2) {
+			$err_msg="ERROR: Data has wrong number of columns in one or more rows, should be exactly 2\r\n"; $err_code=400; goto err;
+		}
+	}
+	if ($rows==0) {
+		$err_msg="ERROR: No data rows!\r\n"; $err_code=400; goto err; 
+	}
 
-// Match mode
-if ( $matches == "all" ) {
-//if(stripos($mode, "parse") !== false) {
-	$opt_matches = "-matches all";	// Return all matches
-} else {
-	$opt_matches = ""; 				// Returns best match only by default
-}
-# Parse-only over-rides matches
-if ( $mode == "parse" ) {
-	$opt_matches = ""; 		
-}
+	///////////////////////////////////////////
+	// Reset selected options for compatibility 
+	// with TNRSbatch command line syntax
+	///////////////////////////////////////////
 
-///////////////////////////////////////////
-// Save data array as pipe-delimited file,
-// to be used as input for TNRS batch app
-///////////////////////////////////////////
+	// Processing mode
+	if ( $mode == "parse" ) {
+	//if(stripos($mode, "parse") !== false) {
+		$opt_mode = "-mode parse";	// Parse-only mode
+	} else {
+		$opt_mode = ""; 		// Default 'resolve' mode
+	}
 
-// Make temporary data directory & file in /tmp 
-$cmd="mkdir -p $data_dir_tmp";
-exec($cmd, $output, $status);
-if ($status) {
-	$err_msg="ERROR: Unable to create temp data directory\r\n";	
-	$err_code=500; goto err;
-}
+	// Match mode
+	if ( $matches == "all" ) {
+	//if(stripos($mode, "parse") !== false) {
+		$opt_matches = "-matches all";	// Return all matches
+	} else {
+		$opt_matches = ""; 				// Returns best match only by default
+	}
+	# Parse-only over-rides matches
+	if ( $mode == "parse" ) {
+		$opt_matches = ""; 		
+	}
 
-// Convert array to pipe-delimited file & save
-// TNRSbatch requires pipe-delimited
-$fp = fopen($file_tmp, "w");
-$i = 0;
-foreach ($data_arr as $row) {
-    fputcsv($fp, array_values($row), '|');				// data
-    $i++;
-}
-fclose($fp);
+	///////////////////////////////////////////
+	// Save data array as pipe-delimited file,
+	// to be used as input for TNRS batch app
+	///////////////////////////////////////////
 
-// Run dos2unix to fix stupid DOS/Mac/Excel/UTF-16 issues, if any
-$cmd = "dos2unix $file_tmp";
-exec($cmd, $output, $status);
-//if ($status) die("ERROR: tnrs_batch non-zero exit status");
-if ($status) {
-	$err_msg="Failed file conversion: dos2unix\r\n";
-	$err_code=500; goto err;
-}
+	// Make temporary data directory & file in /tmp 
+	$cmd="mkdir -p $data_dir_tmp";
+	exec($cmd, $output, $status);
+	if ($status) {
+		$err_msg="ERROR: Unable to create temp data directory\r\n";	
+		$err_code=500; goto err;
+	}
 
-///////////////////////////////////
-// Process the CSV file in batch mode
-///////////////////////////////////
+	// Convert array to pipe-delimited file & save
+	// TNRSbatch requires pipe-delimited
+	$fp = fopen($file_tmp, "w");
+	$i = 0;
+	foreach ($data_arr as $row) {
+		//if($i === 0) fputcsv($fp, array_keys($row));	// header
+		fputcsv($fp, array_values($row), '|');	// data
+		$i++;
+	}
+	fclose($fp);
 
-$data_dir_tmp_full = $data_dir_tmp . "/";
-// Testing with hard-coded options for now
-$cmd = $BATCH_DIR . "controller.pl $opt_mode $opt_matches -in '$file_tmp'  -out '$results_file' -sources '$sources' -class $class -nbatch $NBATCH -d t ";
-// For testing without $opt_mode
-//$cmd = $BATCH_DIR . "controller.pl -in '$file_tmp'  -out '$results_file' -sources '$sources' -class $class -nbatch $NBATCH -d t  ";
-exec($cmd, $output, $status);
-if ($status) {
-	$err_msg="ERROR: tnrs_batch exit status: $status\r\n";
-	$err_code=500; goto err;
-}
-//if ($status) die("
-// \$status=$status
-// \$file_tmp='$file_tmp'
-// \$results_file='$results_file'
-// \$cmd=\"$cmd\"
-// ");
-///////////////////////////////////
-// Retrieve the tab-delimited results
-// file and convert to JSON
-///////////////////////////////////
+	// Run dos2unix to fix stupid DOS/Mac/Excel/UTF-16 issues, if any
+	$cmd = "dos2unix $file_tmp";
+	exec($cmd, $output, $status);
+	//if ($status) die("ERROR: tnrs_batch non-zero exit status");
+	if ($status) {
+		$err_msg="Failed file conversion: dos2unix\r\n";
+		$err_code=500; goto err;
+	}
 
-// TESTING
-// Count line in raw output file
-$lines_raw = count(file($results_file)) - 1;
-
-// Import the results file (tab-delimitted) to array
-// Set third parameter to true to keep best match only for each name,
-// or false to keep all matches
-//$results_array = load_tabbed_file($results_file, false);
-$best_only=$matches=="best"?true:false;
-$results_array = results_to_array($results_file, "\t", $best_only);
-
-// Convert to simple indexed array
-$results_array = array_values($results_array); 	
-
-// Post-processing
-// Ultimately, this should be done by core services, 
-// but handling in API for now
-if ($mode=="parse") {
-	// Fix header of parse-only results
-	$results_array[0]=array(
-	'ID',
-	'Name_submitted',
-	'Family',
-	'Genus',
-	'Specific_epithet',
-	'Infraspecific_rank',
-	'Infraspecific_epithet',
-	'Infraspecific_rank_2',
-	'Infraspecific_epithet_2',
-	'Author',
-	'Annotations',
-	'Unmatched_terms'
-	);
-} 
-
-////////////////////////////////////////////////////
-// Remove superfluous single quotes and escapes 
-////////////////////////////////////////////////////
-
-// Set column number for "Unmatched_terms"
-if ($mode=="parse") {
-	$umt_col = 11;
-} elseif ($mode=="resolve" || $mode=="" ) {
-	$umt_col = 28;
-}
-
-$n = 0;
-foreach ($results_array as $row) {	
 	///////////////////////////////////
-	// Name_sumbitted (column 1)
+	// Process the CSV file in batch mode
 	///////////////////////////////////
-	
-	// First single quote
-	$old = $results_array[$n][1];
-	$ptn = "/^\"'/";
-	$repl = "\"";
-	$new = 	preg_replace($ptn, $repl, $old);
-	$results_array[$n][1] = $new;
-	
-	// Last single quote
-	$old = $results_array[$n][1];
-	$ptn = "/'\"$/";
-	$repl = "\"";
-	$new = 	preg_replace($ptn, $repl, $old);
-	$results_array[$n][1] = $new;
 
-	// Escapes of embedded single quotes, if any
-	$old = $results_array[$n][1];
-	$ptn = "/'\\\'/";
-	$repl = "";
-	$new = 	preg_replace($ptn, $repl, $old);
-	$results_array[$n][1] = $new;
-	
+	$data_dir_tmp_full = $data_dir_tmp . "/";
+	// Testing with hard-coded options for now
+	$cmd = $BATCH_DIR . "controller.pl $opt_mode $opt_matches -in '$file_tmp'  -out '$results_file' -sources '$sources' -class $class -nbatch $NBATCH -d t ";
+	// For testing without $opt_mode
+	//$cmd = $BATCH_DIR . "controller.pl -in '$file_tmp'  -out '$results_file' -sources '$sources' -class $class -nbatch $NBATCH -d t  ";
+	exec($cmd, $output, $status);
+	if ($status) {
+		$err_msg="ERROR: tnrs_batch exit status: $status\r\n";
+		$err_code=500; goto err;
+	}
+	//if ($status) die("
+	// \$status=$status
+	// \$file_tmp='$file_tmp'
+	// \$results_file='$results_file'
+	// \$cmd=\"$cmd\"
+	// ");
 	///////////////////////////////////
-	// Unmatched_terms
-	//   resolve mode: column 27
-	//   parse mode: column 10
+	// Retrieve the tab-delimited results
+	// file and convert to JSON
 	///////////////////////////////////
-	
-	// Initial single quote preceded by double quote
-	$old = $results_array[$n][$umt_col];
-	$ptn = "/^\"'/";
-	$repl = "\"";
-	$new = 	preg_replace($ptn, $repl, $old);
-	$results_array[$n][$umt_col] = $new;
 
-	// Escape characters
-	$old = $results_array[$n][$umt_col];
-	$ptn = "/\\\/";
-	$repl = "";
-	$new = 	preg_replace($ptn, $repl, $old);
-	$results_array[$n][$umt_col] = $new;
+	// TESTING
+	// Count line in raw output file
+	$lines_raw = count(file($results_file)) - 1;
+
+	// Import the results file (tab-delimitted) to array
+	// Set third parameter to true to keep best match only for each name,
+	// or false to keep all matches
+	//$results_array = load_tabbed_file($results_file, false);
+	$best_only=$matches=="best"?true:false;
+	$results_array = results_to_array($results_file, "\t", $best_only);
+
+	// Convert to simple indexed array
+	$results_array = array_values($results_array); 	
+
+	// Post-processing
+	// Ultimately, this should be done by core services, 
+	// but handling in API for now
+	if ($mode=="parse") {
+		// Fix header of parse-only results
+		$results_array[0]=array(
+		'ID',
+		'Name_submitted',
+		'Family',
+		'Genus',
+		'Specific_epithet',
+		'Infraspecific_rank',
+		'Infraspecific_epithet',
+		'Infraspecific_rank_2',
+		'Infraspecific_epithet_2',
+		'Author',
+		'Annotations',
+		'Unmatched_terms'
+		);
+	} 
+
+	////////////////////////////////////////////////////
+	// Remove superfluous single quotes and escapes 
+	////////////////////////////////////////////////////
+
+	// Set column number for "Unmatched_terms"
+	if ($mode=="parse") {
+		$umt_col = 11;
+	} elseif ($mode=="resolve" || $mode=="" ) {
+		$umt_col = 28;
+	}
+
+	$n = 0;
+	foreach ($results_array as $row) {	
+		///////////////////////////////////
+		// Name_sumbitted (column 1)
+		///////////////////////////////////
+	
+		// First single quote
+		$old = $results_array[$n][1];
+		$ptn = "/^\"'/";
+		$repl = "\"";
+		$new = 	preg_replace($ptn, $repl, $old);
+		$results_array[$n][1] = $new;
+	
+		// Last single quote
+		$old = $results_array[$n][1];
+		$ptn = "/'\"$/";
+		$repl = "\"";
+		$new = 	preg_replace($ptn, $repl, $old);
+		$results_array[$n][1] = $new;
+
+		// Escapes of embedded single quotes, if any
+		$old = $results_array[$n][1];
+		$ptn = "/'\\\'/";
+		$repl = "";
+		$new = 	preg_replace($ptn, $repl, $old);
+		$results_array[$n][1] = $new;
+	
+		///////////////////////////////////
+		// Unmatched_terms
+		//   resolve mode: column 27
+		//   parse mode: column 10
+		///////////////////////////////////
+	
+		// Initial single quote preceded by double quote
+		$old = $results_array[$n][$umt_col];
+		$ptn = "/^\"'/";
+		$repl = "\"";
+		$new = 	preg_replace($ptn, $repl, $old);
+		$results_array[$n][$umt_col] = $new;
+
+		// Escape characters
+		$old = $results_array[$n][$umt_col];
+		$ptn = "/\\\/";
+		$repl = "";
+		$new = 	preg_replace($ptn, $repl, $old);
+		$results_array[$n][$umt_col] = $new;
 		
-	// Extra leading whitespace, preceded by double quote
-	// Multiple time to catch multiple whitespace
-	$results_array[$n][$umt_col] = preg_replace("/^\"\s+/", "\"", $results_array[$n][$umt_col]);
+		// Extra leading whitespace, preceded by double quote
+		// Multiple time to catch multiple whitespace
+		$results_array[$n][$umt_col] = preg_replace("/^\"\s+/", "\"", $results_array[$n][$umt_col]);
 	
-	// Initial single quote not preceded by double quote
-	$old = $results_array[$n][$umt_col];
-	$ptn = "/^'/";
-	$repl = "";
-	$new = 	preg_replace($ptn, $repl, $old);
-	$results_array[$n][$umt_col] = $new;
+		// Initial single quote not preceded by double quote
+		$old = $results_array[$n][$umt_col];
+		$ptn = "/^'/";
+		$repl = "";
+		$new = 	preg_replace($ptn, $repl, $old);
+		$results_array[$n][$umt_col] = $new;
 	
-	$n++;
-}
+		$n++;
+	}
+} else {	// CONTINUE mode_if 
+	// Metadaa requests
 
-} elseif ( $mode=="meta" ) { // CONTINUE mode_if 
-	$sql="
-	SELECT db_version, build_date, code_version
-	FROM meta
-	;
-	";
-	include("qy_db.php");
-} elseif ( $mode=="sources" ) { // CONTINUE mode_if 
-	$sql="
-	SELECT sourceID, sourceName, sourceNameFull, sourceUrl,
-	sourceVersion as version, sourceReleaseDate, 
-	dateAccessed AS tnrsDateAccessed
-	FROM source
-	;
-	";
-	include("qy_db.php");
-} elseif ( $mode=="citations" ) { // CONTINUE mode_if 
-	$sql="
-	SELECT 'tnrs' AS source, citation
-	FROM meta
-	UNION ALL
-	SELECT sourceName AS source, citation
-	FROM source
-	WHERE citation IS NOT NULL AND TRIM(citation)<>''
-	;
-	";
-	include("qy_db.php");
+	if ( $mode=="meta" ) { 
+		$sql="
+		SELECT db_version, build_date, code_version
+		FROM meta
+		;
+		";
+	} elseif ( $mode=="sources" ) { // CONTINUE mode_if 
+		$sql="
+		SELECT sourceID, sourceName, sourceNameFull, sourceUrl,
+		sourceVersion as version, sourceReleaseDate, 
+		dateAccessed AS tnrsDateAccessed
+		FROM source
+		;
+		";
+	} elseif ( $mode=="citations" ) { // CONTINUE mode_if 
+		$sql="
+		SELECT 'tnrs' AS source, citation
+		FROM meta
+		UNION ALL
+		SELECT sourceName AS source, citation
+		FROM source
+		WHERE citation IS NOT NULL AND TRIM(citation)<>''
+		;
+		";
+	} else {
+		$err_msg="ERROR: Unknown opt mode '$mode'\r\n"; 
+		$err_code=400; goto err;
+	}
+	
+	// Run the query and save results as $results_array
+	include("qy_db.php"); 
+	
 }	// END mode_if
 
 $results_json = json_encode($results_array);
@@ -406,8 +421,18 @@ $results_json = json_encode($results_array);
 // Echo the results
 ///////////////////////////////////
 
+// The header
 header('Content-type: application/json');
+
+// Additional header to support CORS (Cross-Origin Resource Sharing) 
+// with same-origin policy, for responding to API calls from 
+// Javascript browser apps
+header("Access-Control-Allow-Origin: http://localhost:3000");
+
+// The data
 echo $results_json;
+
+// For troubleshooting
 //echo "sources='$sources_bak', class='$class_bak', mode='$mode_bak'";
 //echo "n=$n";
 //echo "\r\nlines_raw=$lines_raw, n=$n";
