@@ -30,11 +30,12 @@ $format="json";
 // Use this option to limit test data to small subsample of input file
 // Set to number > # of lines in file to import entire file
 $lines = 10000000000;
-$lines = 15;
+$lines = 2;
 
 // api base url 
 $base_url = "https://tnrsapidev.xyz/tnrs_api.php";	// production, not working
 $base_url = "http://vegbiendev.nceas.ucsb.edu:8975/tnrs_api.php";	// development, works as of 3/08/2020
+//$base_url = "http://vegbiendev.nceas.ucsb.edu:8975/tnrs_api.new.php"; //testing
 
 /////////////////////////////////////////
 // TNRS options
@@ -52,7 +53,7 @@ $base_url = "http://vegbiendev.nceas.ucsb.edu:8975/tnrs_api.php";	// development
 // 	E.g., $mode="parse"
 $mode="resolve";	# Resolve names
 //$mode="";		// Same as $mode="resolve";
-// $mode="parse";		# Parse names
+//$mode="parse";		# Parse names
 // $mode="meta";		# Return metadata on TNRS & sources
 //$mode="sources";		# List TNRS sources
 // $mode="citations";		# Return citations for TNRS & sources
@@ -72,7 +73,7 @@ $class="tropicos";
 // 	Options: best*|all
 // 	Over-ride command line option -m
 $matches="best";
-$matches="all";
+//$matches="all";
 
 // Match accuracy (NOT IMPLEMENTED)
 // Must be decimal from 0.05 (default) to 1
@@ -116,7 +117,7 @@ $time=true;					// Echo time elapsed
 // Use default if unset
 $options = getopt("b:m:");
 $batches=isset($options["b"])?$options["b"]:"$NBATCH";	
-$matches=isset($options["m"])?$options["m"]:"$TNRS_DEF_MATCHES";
+// $matches=isset($options["m"])?$options["m"]:"$TNRS_DEF_MATCHES";
 
 ////////////////////////////////////////////////////////////////
 // Main
@@ -128,7 +129,6 @@ echo "\n";
 ///////////////////////////////
 // Make options array
 ///////////////////////////////
-
 $opts_arr = array(
 	"sources"=>$sources, 
 	"class"=>$class, 

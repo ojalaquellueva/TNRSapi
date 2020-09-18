@@ -39,34 +39,45 @@ $results_file = $data_dir_tmp . $results_filename;
 ///////////////////////////////////
 
 ////////////////////////////////////////////////////////
-// Loads results file as an asociative array
+// Loads results file as an array, with option to keep 
+// best match only
+// 
+// Option $best_match=true treats the value in the first 
+// column as an array key, and keeps only the last of a 
+// series of lines bearing the same key. Assuming the 
+// file has already been sorted with best match for each 
+// name last, $best_match=true keeps best match only. 
+// In other words, results file MUST be already sorted!
 // 
 // Options:
 //	$filepath: path and name of file to import
-//	$delim: field delimiter
+//	$delim: file field delimiter
+//	$best_match: 
+//		true="keep best match only" (default)
+//		false="keep all matches"
 ////////////////////////////////////////////////////////
-
-function file_to_array_assoc($filepath, $delim) {
-	$array = $fields = array(); $i = 0;
-	$handle = @fopen($filepath, "r");
-	if ($handle) {
-		while (($row = fgetcsv($handle, 4096, $delim)) !== false) {
-			if (empty($fields)) {
-				$fields = $row;
-				continue;
-			}
-			foreach ($row as $k=>$value) {
-				$array[$i][$fields[$k]] = $value;
-			}
-			$i++;
-		}
-		if (!feof($handle)) {
-			echo "Error: unexpected fgets() fail\n";
-		}
-		fclose($handle);
-	}
-	
-	return $array;
+function results_to_array($filepath, $delim, $best_match=true) {
+    $array = array();
+ 
+    if (!file_exists($filepath)){ return $array; }
+    $content = file($filepath);
+ 
+    for ($x=0; $x < count($content); $x++){
+        if (trim($content[$x]) != ''){
+            $line = explode($delim, trim($content[$x]));
+            if ($best_match) {
+                // This has the effect of keeping only the last in a 
+                // series of rows bearing the same ID, where ID is in
+                // the first column
+                $key = $line[0];
+                //$key = array_shift($line); // Omits first column
+                 $array[$key] = $line; 
+            } else { 
+            	$array[] = $line;
+            }
+        }
+    }
+    return $array;
 }
 
 ////////////////////////////////////////
@@ -241,10 +252,10 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 	///////////////////////////////////
 
 	$data_dir_tmp_full = $data_dir_tmp . "/";
-	// Form the final command
+	// Testing with hard-coded options for now
 	$cmd = $BATCH_DIR . "controller.pl $opt_mode $opt_matches -in '$file_tmp'  -out '$results_file' -sources '$sources' -class $class -nbatch $NBATCH -d t ";
-
-	// Execute the TNRSBatch command
+	// For testing without $opt_mode
+	//$cmd = $BATCH_DIR . "controller.pl -in '$file_tmp'  -out '$results_file' -sources '$sources' -class $class -nbatch $NBATCH -d t  ";
 	exec($cmd, $output, $status);
 	if ($status) {
 		$err_msg="ERROR: tnrs_batch exit status: $status\r\n";
@@ -261,9 +272,112 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 	// file and convert to JSON
 	///////////////////////////////////
 
-	// Import the results file (tab-delimitted) to array
-	$results_array = file_to_array_assoc($results_file, "\t");
+	// TESTING
+	// Count line in raw output file
+	$lines_raw = count(file($results_file)) - 1;
 
+	// Import the results file (tab-delimitted) to array
+	// Set third parameter to true to keep best match only for each name,
+	// or false to keep all matches
+	//$results_array = load_tabbed_file($results_file, false);
+	$best_only=$matches=="best"?true:false;
+	$results_array = results_to_array($results_file, "\t", $best_only);
+
+	// Convert to simple indexed array
+	$results_array = array_values($results_array); 	
+
+	// Post-processing
+	// Ultimately, this should be done by core services, 
+	// but handling in API for now
+	if ($mode=="parse") {
+		// Fix header of parse-only results
+		$results_array[0]=array(
+		'ID',
+		'Name_submitted',
+		'Family',
+		'Genus',
+		'Specific_epithet',
+		'Infraspecific_rank',
+		'Infraspecific_epithet',
+		'Infraspecific_rank_2',
+		'Infraspecific_epithet_2',
+		'Author',
+		'Annotations',
+		'Unmatched_terms'
+		);
+	} 
+
+	////////////////////////////////////////////////////
+	// Remove superfluous single quotes and escapes 
+	////////////////////////////////////////////////////
+
+	// Set column number for "Unmatched_terms"
+	if ($mode=="parse") {
+		$umt_col = 11;
+	} elseif ($mode=="resolve" || $mode=="" ) {
+		$umt_col = 28;
+	}
+
+	$n = 0;
+	foreach ($results_array as $row) {	
+		///////////////////////////////////
+		// Name_sumbitted (column 1)
+		///////////////////////////////////
+	
+		// First single quote
+		$old = $results_array[$n][1];
+		$ptn = "/^\"'/";
+		$repl = "\"";
+		$new = 	preg_replace($ptn, $repl, $old);
+		$results_array[$n][1] = $new;
+	
+		// Last single quote
+		$old = $results_array[$n][1];
+		$ptn = "/'\"$/";
+		$repl = "\"";
+		$new = 	preg_replace($ptn, $repl, $old);
+		$results_array[$n][1] = $new;
+
+		// Escapes of embedded single quotes, if any
+		$old = $results_array[$n][1];
+		$ptn = "/'\\\'/";
+		$repl = "";
+		$new = 	preg_replace($ptn, $repl, $old);
+		$results_array[$n][1] = $new;
+	
+		///////////////////////////////////
+		// Unmatched_terms
+		//   resolve mode: column 27
+		//   parse mode: column 10
+		///////////////////////////////////
+	
+		// Initial single quote preceded by double quote
+		$old = $results_array[$n][$umt_col];
+		$ptn = "/^\"'/";
+		$repl = "\"";
+		$new = 	preg_replace($ptn, $repl, $old);
+		$results_array[$n][$umt_col] = $new;
+
+		// Escape characters
+		$old = $results_array[$n][$umt_col];
+		$ptn = "/\\\/";
+		$repl = "";
+		$new = 	preg_replace($ptn, $repl, $old);
+		$results_array[$n][$umt_col] = $new;
+		
+		// Extra leading whitespace, preceded by double quote
+		// Multiple time to catch multiple whitespace
+		$results_array[$n][$umt_col] = preg_replace("/^\"\s+/", "\"", $results_array[$n][$umt_col]);
+	
+		// Initial single quote not preceded by double quote
+		$old = $results_array[$n][$umt_col];
+		$ptn = "/^'/";
+		$repl = "";
+		$new = 	preg_replace($ptn, $repl, $old);
+		$results_array[$n][$umt_col] = $new;
+	
+		$n++;
+	}
 } else {	// CONTINUE mode_if 
 	// Metadaa requests
 
