@@ -30,7 +30,7 @@ $format="json";
 // Use this option to limit test data to small subsample of input file
 // Set to number > # of lines in file to import entire file
 $lines = 10000000000;
-$lines = 2;
+$lines = 4;
 
 // api base url 
 $base_url = "https://tnrsapidev.xyz/tnrs_api.php";	// production, not working
@@ -54,9 +54,9 @@ $base_url = "http://vegbiendev.nceas.ucsb.edu:8975/tnrs_api.php";	// development
 $mode="resolve";	# Resolve names
 //$mode="";		// Same as $mode="resolve";
 //$mode="parse";		# Parse names
-// $mode="meta";		# Return metadata on TNRS & sources
+//$mode="meta";		# Return metadata on TNRS & sources
 //$mode="sources";		# List TNRS sources
-// $mode="citations";		# Return citations for TNRS & sources
+//$mode="citations";		# Return citations for TNRS & sources
 
 // Taxonomic sources
 // One or more of the following, separated by commas, no spaces:
@@ -105,7 +105,7 @@ $disp_opts=true;			// Echo TNRS options
 $disp_json_data=false;		// Echo the options + raw data JSON POST data
 $disp_results_json=true;	// Echo results as array
 $disp_results_array=false;	// Echo results as array
-$disp_results_csv=true;		// Echo results as CSV text, for pasting to Excel
+$disp_results_csv=true;		// Echo results as CSV text
 $time=true;					// Echo time elapsed
 
 /////////////////////////////////////////////////////
@@ -268,81 +268,33 @@ if ($disp_results_array) {
 }
 
 if ($disp_results_csv) {
-	echo "API results as CSV (for pasting to spreadsheet):\r\n";
-
-	if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) {
-		foreach($results as $result) {
-			$line = implode(",", array_slice($result, 0)) . "\r\n";
-			print_r($line);
+	echo "API results as CSV:\r\n";
+	
+// 	if ( ! ($mode=="resolve" || $mode=="" || $mode=="parse") ) {
+// 		$results = $results[0];	// Remove one level of nesting
+// 	}
+// 
+	foreach ( $results as $rkey => $row ) {
+		$rind=array_search( $rkey, array_keys($results) );	# Index: current row
+		$cindmax = count( $row )-1;	// Index: last column of current row
+	
+		if ( $rind==0 ) {
+			// Print header
+			foreach ( $row as $key => $value )  {	
+				$cind=array_search( $key, array_keys($row) );
+				$cind==$cindmax?$format="%1s\n":$format="%1s,";
+				printf($format, $key);
+			}
 		}
-	} else {
-		$table = array_to_csv($results,",");
-		echo $table;
-	}
-	echo "\n";
-}
 
-
-function array_to_csv($arr,$delim) {
-	#############################################
-	# Converts nested array to a 'table array',
-	# with each element a delimited string,
-	# the delimiters separating cells
-	# Assumes first row is header
-	#############################################
-
-	# Extract header
-	$header = csv_header($arr,$delim);
-	$header = preg_split("/[\f\r\n]+/",$header ); # convert string to array
-	$header = array_unique($header);	# get unique lines
-	$header = implode("", $header);	# convert back to string
-	
-	# Extract cells
-	$rows = csv_rows($arr,$delim);
-	$rows = preg_replace("/(^[\r\n]*|[\r\n]+)[\s\t]*[\r\n]+/", "\n", $rows);
-	
-	# Combine header and table
-	$table = $header . "\n" . $rows;
-	return($table);
-}
-
-function csv_header($arr,$delim) { 
-	# Extract  ultimate elements header
-	$return = "";
-	
-	foreach ($arr as $key => $value) {
-	//$return .= "$key: ";
-		if (is_array($value)) {
-			$return .= csv_header($value,$delim);
-		} else {
-			$return .= $key.$delim;
+		// Print data 
+		foreach ( $row as $key => $value )  {	
+			$cind=array_search( $key, array_keys($row) );
+			$cind==$cindmax?$format="%1s\n":$format="%1s,";
+			printf($format, $value);
 		}
-		$return .= "";
 	}
-	
-	$return = rtrim(trim($return), $delim);
-	$return .= "\n";
-	return($return);
 }
-
-function csv_rows($arr,$delim) {
-	# Accumulate ultimate elements values as row
-	$return = "";
-
-	foreach ($arr as $key => $value) {
-		if (is_array($value)) {
-			$return .= csv_rows($value,$delim);
-		} else {
-			$return .= $value.$delim;
-		}
-		$return .= "";
-	}
-	
-	$return = rtrim(trim($return), $delim);
-	$return .= "\n";
-	return($return);
-}
-
 
 ///////////////////////////////////
 // Echo time elapsed

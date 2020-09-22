@@ -310,18 +310,15 @@ $results_json = json_encode($results_array);
 // The header
 header('Content-type: application/json');
 
-// Additional header to support CORS (Cross-Origin Resource Sharing) 
+// Additional headers to support CORS (Cross-Origin Resource Sharing) 
 // with same-origin policy, for responding to API calls from 
 // Javascript browser apps
 header("Access-Control-Allow-Origin: http://localhost:3000");
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS, DELETE");
+header("Access-Control-Max-Age: 86400");
 
 // The data
 echo $results_json;
-
-// For troubleshooting
-//echo "sources='$sources_bak', class='$class_bak', mode='$mode_bak'";
-//echo "n=$n";
-//echo "\r\nlines_raw=$lines_raw, n=$n";
 
 ///////////////////////////////////
 // Error: return http status code

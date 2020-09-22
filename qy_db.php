@@ -28,7 +28,8 @@ $qy = mysqli_query($link,$sql) or die('Query failed!'.$sql_disp);
 $results_array = array();
 if(mysqli_num_rows($qy)) {
 	while($result = mysqli_fetch_assoc($qy)) {
-		$results_array[] = array($mode=>$result);
+		//$results_array[] = array($mode=>$result); // Include $mode
+		$results_array[] = $result;					// Omit $mode
 	}
 }
 
