@@ -263,6 +263,29 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 
 	// Import the results file (tab-delimitted) to array
 	$results_array = file_to_array_assoc($results_file, "\t");
+	
+	// Remove rogue single quotes inserted by core service
+	// Eventually need to fix at source
+	foreach ( $results_array as $rkey => $row ) {
+		// Single quotes surrounding Name_submitted
+		$str = $row['Name_submitted'];
+		$start = substr( $str, 0, 1 );
+		$end = substr( $str, strlen($str)-1, 1 );
+		if ( $start="'" && $end="'" ) {
+			$str = substr($str, 1 );
+			$str = substr($str, 0, -1);
+		}
+		$results_array[$rkey]['Name_submitted']=$str;
+		
+		// Single leading quote before Unmatched_terms
+		$str = $row['Unmatched_terms'];
+		$start = substr( $str, 0, 1 );
+		if ( $start="'" ) {
+			$str = substr($str, 1 );
+		}
+		$results_array[$rkey]['Unmatched_terms']=$str;
+		
+	}
 
 } else {	// CONTINUE mode_if 
 	// Metadaa requests
