@@ -60,7 +60,7 @@ $timer_off=$utilities_path."timer_off.inc";
 # Am now treating this option as equivalent to a RESTful API "route"
 # Options "resolve" & "parse" go to TNRSbatch, but other options
 # query database directly
-$TNRS_MODES = array("resolve","parse","meta","sources","citations");
+$TNRS_MODES = array("resolve","parse","meta","sources","citations","classifications");
 
 # Sources are now only "tropicos","tpl","usda" but leaving as-is for
 # backward compatibility. TNRSbatch will ignore the now non-extistent

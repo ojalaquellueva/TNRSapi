@@ -51,12 +51,13 @@ $base_url = "http://vegbiendev.nceas.ucsb.edu:8975/tnrs_api.php";	// development
 // Processing mode
 //	Options: resolve*|parse|meta
 // 	E.g., $mode="parse"
-$mode="resolve";	# Resolve names
-//$mode="";		// Same as $mode="resolve";
-//$mode="parse";		# Parse names
-//$mode="meta";		# Return metadata on TNRS & sources
-//$mode="sources";		# List TNRS sources
-//$mode="citations";		# Return citations for TNRS & sources
+$mode="resolve";			// Resolve names
+$mode="";					// Same as $mode="resolve";
+//$mode="parse";			// Parse names
+//$mode="meta";				// Return metadata on TNRS & sources
+//$mode="sources";			// List TNRS sources
+//$mode="citations";		// Return citations for TNRS & sources
+$mode="classifications";	// Return citations for TNRS & sources
 
 // Taxonomic sources
 // One or more of the following, separated by commas, no spaces:
@@ -104,7 +105,7 @@ $disp_opts_array=false;		// Echo TNRS options as array
 $disp_opts=true;			// Echo TNRS options
 $disp_json_data=false;		// Echo the options + raw data JSON POST data
 $disp_results_json=true;	// Echo results as array
-$disp_results_array=true;	// Echo results as array
+$disp_results_array=false;	// Echo results as array
 $disp_results_csv=true;		// Echo results as CSV text
 $time=true;					// Echo time elapsed
 

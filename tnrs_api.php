@@ -304,6 +304,13 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 		FROM source
 		;
 		";
+	} elseif ( $mode=="classifications" ) { // CONTINUE mode_if 
+		$sql="
+		SELECT sourceID, sourceName
+		FROM source
+		WHERE isHigherClassification=1
+		;
+		";
 	} elseif ( $mode=="citations" ) { // CONTINUE mode_if 
 		$sql="
 		SELECT 'tnrs' AS source, citation

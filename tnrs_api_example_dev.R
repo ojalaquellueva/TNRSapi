@@ -82,8 +82,7 @@ results[ , c('Name_submitted', 'match.score', 'Name_matched', 'Taxonomic_status'
 #################################
 # Example 2: Resolve mode, all matches
 #################################
-rm(results_json)
-rm( list = Filter( exists, c("results") ) )
+rm( list = Filter( exists, c("results", "results_json") ) )
 
 # Set the TNRS options
 sources <- "tropicos,tpl,usda"					# Taxonomic sources
@@ -121,8 +120,7 @@ results[ , c('ID', 'Name_submitted', 'match.score', 'Name_matched',
 #################################
 # Example 3: Parse mode
 #################################
-rm(results_json)
-rm( list = Filter( exists, c("results") ) )
+rm( list = Filter( exists, c("results", "results_json") ) )
 
 # Let's just parse the names instead
 # All we need to do is reset option mode:
@@ -154,92 +152,106 @@ results.t[,2:3,drop =FALSE]
 # Example 4: Get metadata for current 
 # TNRS version
 #################################
-rm(results_json)
-rm( list = Filter( exists, c("results") ) )
+rm( list = Filter( exists, c("results", "results_json") ) )
 
 # All we need to do is reset option mode.
 # all other options will be ignored
 mode <- "meta"		
 
-# Reform the options json again
-opts <- data.frame(c(sources),c(class), c(mode))
-names(opts) <- c("sources", "class", "mode")
+# Re-form the options json again
+# Note that only 'mode' is needed
+opts <- data.frame(c(mode))
+names(opts) <- c("mode")
 opts_json <- jsonlite::toJSON(opts)
 opts_json <- gsub('\\[','',opts_json)
 opts_json <- gsub('\\]','',opts_json)
 
-# Make the options + data JSON
-input_json <- paste0('{"opts":', opts_json, ',"data":', data_json, '}' )
+# Make the options
+# No data needed
+input_json <- paste0('{"opts":', opts_json, '}' )
 
 # Send the request again
 results_json <- postForm(url, .opts=list(postfields= input_json, httpheader=headers))
 
-if ( grepl("Query failed", results_json, fixed = TRUE) ) {
-	# Query failed, display output and error message if provided
-	cat( results_json )
-} else {
-	results <- jsonlite::fromJSON(results_json)
-	print( results )
-}
+# Display the results
+results <- jsonlite::fromJSON(results_json)
+print( results )
 
 #################################
 # Example 5: Get metadata for all 
 # taxonomic sources
 #################################
-rm(results_json)
-rm( list = Filter( exists, c("results") ) )
+rm( list = Filter( exists, c("results", "results_json") ) )
 
 # Set sources mode
 mode <- "sources"		
 
-# Reform the options json again
-opts <- data.frame(c(sources),c(class), c(mode))
-names(opts) <- c("sources", "class", "mode")
+# Re-form the options json again
+opts <- data.frame(c(mode))
+names(opts) <- c("mode")
 opts_json <- jsonlite::toJSON(opts)
 opts_json <- gsub('\\[','',opts_json)
 opts_json <- gsub('\\]','',opts_json)
 
-# Make the options + data JSON
-input_json <- paste0('{"opts":', opts_json, ',"data":', data_json, '}' )
+# Make the options
+input_json <- paste0('{"opts":', opts_json, '}' )
 
 # Send the request again
 results_json <- postForm(url, .opts=list(postfields= input_json, httpheader=headers))
 
-if ( grepl("Query failed", results_json, fixed = TRUE) ) {
-	# Query failed, display output and error message if provided
-	cat( results_json )
-} else {
-	results <- jsonlite::fromJSON(results_json)
-	print( results )
-}
+# Display the results
+results <- jsonlite::fromJSON(results_json)
+print( results )
 
 #################################
 # Example 6: Get bibtex citations for taxonomic 
 # sources and the TNRS
 #################################
-rm(results_json)
-rm( list = Filter( exists, c("results") ) )
+rm( list = Filter( exists, c("results", "results_json") ) )
 
 # Set citations mode
 mode <- "citations"		
 
-# Reform the options json again
-opts <- data.frame(c(sources),c(class), c(mode))
-names(opts) <- c("sources", "class", "mode")
+# Re-form the options json again
+opts <- data.frame(c(mode))
+names(opts) <- c("mode")
 opts_json <- jsonlite::toJSON(opts)
 opts_json <- gsub('\\[','',opts_json)
 opts_json <- gsub('\\]','',opts_json)
 
-# Make the options + data JSON
-input_json <- paste0('{"opts":', opts_json, ',"data":', data_json, '}' )
+# Make the options
+input_json <- paste0('{"opts":', opts_json, '}' )
 
 # Send the request again
 results_json <- postForm(url, .opts=list(postfields= input_json, httpheader=headers))
 
-if ( grepl("Query failed", results_json, fixed = TRUE) ) {
-	# Query failed, display output and error message if provided
-	cat( results_json )
-} else {
-	results <- jsonlite::fromJSON(results_json)
-	print( results )
-}
+# Display the results
+results <- jsonlite::fromJSON(results_json)
+print( results )
+
+#################################
+# Example 7: Get all currently available 
+# family classification sources
+#################################
+rm( list = Filter( exists, c("results", "results_json") ) )
+
+# Set citations mode
+mode <- "classifications"		
+
+# Re-form the options json again
+opts <- data.frame(c(mode))
+names(opts) <- c("mode")
+opts_json <- jsonlite::toJSON(opts)
+opts_json <- gsub('\\[','',opts_json)
+opts_json <- gsub('\\]','',opts_json)
+
+# Make the options
+input_json <- paste0('{"opts":', opts_json, '}' )
+
+# Send the request again
+results_json <- postForm(url, .opts=list(postfields= input_json, httpheader=headers))
+
+# Display the results
+results <- jsonlite::fromJSON(results_json)
+print( results )
+
