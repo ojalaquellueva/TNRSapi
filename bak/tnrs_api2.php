@@ -17,19 +17,19 @@ require_once($utilities_path."status_codes.php");
 
 // Temporary data directory
 $data_dir_tmp = $DATADIR;
-$data_dir_tmp = "/tmp/tnrs/";
+$data_dir_tmp = "/tmp/tnrs";
 
 // Input file name & path
 // User JSON input saved to this file as pipe-delimited text
 // Becomes input for tnrs_batch command (`./controller.pl [...]`)
-$basename = "tnrs_" . uniqid(rand(), true);
+$basename = uniqid(rand(), true);
 
-$filename_tmp = $basename . '_in.tsv';
+$filename_tmp = $basename . '_in.txt';
 $file_tmp = $data_dir_tmp . $filename_tmp;
 
 // Results file name & path
 // Output of tnrs_batch command will be saved to this file
-$results_filename = $basename . "_out.tsv";
+$results_filename = $basename . "_out.txt";
 
 # Full path and name of results file
 $results_file = $data_dir_tmp . $results_filename;
@@ -50,14 +50,11 @@ function file_to_array_assoc($filepath, $delim) {
 	$array = $fields = array(); $i = 0;
 	$handle = @fopen($filepath, "r");
 	if ($handle) {
-		while (($row = fgetcsv($handle, 4096, $delim , '"' , '"')) !== false) {
-			// Load keys from header row & continue to next
+		while (($row = fgetcsv($handle, 4096, $delim)) !== false) {
 			if (empty($fields)) {
 				$fields = $row;
 				continue;
 			}
-			
-			// Load value for this row 
 			foreach ($row as $k=>$value) {
 				$array[$i][$fields[$k]] = $value;
 			}
@@ -263,33 +260,38 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 	// Retrieve the tab-delimited results
 	// file and convert to JSON
 	///////////////////////////////////
-	
+
 	// Import the results file (tab-delimitted) to array
 	$results_array = file_to_array_assoc($results_file, "\t");
 	
-	// Clean up crap inserted by core service
+	// Remove rogue single quotes inserted by core service
+	// Eventually need to fix at source
 	foreach ( $results_array as $rkey => $row ) {
-		
+		// Single quotes surrounding Name_submitted
 		$str = $row['Name_submitted'];
-		// Restore double-escaped single quote to single quote
-		$str = str_replace("'\\''", "'", $str);
-		// Trim surrounding single quotes added by core service
 		$start = substr( $str, 0, 1 );
 		$end = substr( $str, strlen($str)-1, 1 );
-		if ( $start="'" && $end="'" ) {	// both quotes must be present
+		if ( $start="'" && $end="'" ) {
 			$str = substr($str, 1 );
 			$str = substr($str, 0, -1);
 		}
 		$results_array[$rkey]['Name_submitted']=$str;
+
+		// Replace double escapes of internal single quotes
+		$str = $row['Name_submitted'];
+		$str = str_replace("'\\\\'", "", $str);
+		$results_array[$rkey]['Name_submitted']=$str;
 		
+		// Single leading quote before Unmatched_terms
 		$str = $row['Unmatched_terms'];
-		// Remove initial single quote
-		if ( substr( $str, 0, 1 )=="'" ) {
-			$str = substr($str, 1 ); 
+		$start = substr( $str, 0, 1 );
+		if ( $start="'" ) {
+			$str = substr($str, 1 );
 		}
-		// Remove backslashes
-		$str = str_replace("\\", "", $str);	
-		$results_array[$rkey]['Unmatched_terms']=$str;		
+		$results_array[$rkey]['Unmatched_terms']=$str;
+
+
+
 	}
 
 } else {	// CONTINUE mode_if 

@@ -19,6 +19,8 @@ require_once 'params.php';	// parameters in ALL_CAPS set here
 
 // Path and name of file containing input names and political divisions
 $inputfilename = "tnrs_testfile.csv";
+$inputfile = $DATADIR.$inputfilename;
+//$inputfile = "http://bien.nceas.ucsb.edu/bien/wp-content/uploads/2019/07/tnrs_testfile.csv";
 
 // Desired response format
 //	Options: json*|xml
@@ -30,12 +32,12 @@ $format="json";
 // Use this option to limit test data to small subsample of input file
 // Set to number > # of lines in file to import entire file
 $lines = 10000000000;
-$lines = 4;
+//$lines = 4;
 
 // api base url 
 $base_url = "https://tnrsapidev.xyz/tnrs_api.php";	// production, not working
+//$base_url = "http://vegbiendev.nceas.ucsb.edu:8975/tnrs_api.new.php"; //test
 $base_url = "http://vegbiendev.nceas.ucsb.edu:8975/tnrs_api.php";	// development, works as of 3/08/2020
-//$base_url = "http://vegbiendev.nceas.ucsb.edu:8975/tnrs_api.new.php"; //testing
 
 /////////////////////////////////////////
 // TNRS options
@@ -52,12 +54,12 @@ $base_url = "http://vegbiendev.nceas.ucsb.edu:8975/tnrs_api.php";	// development
 //	Options: resolve*|parse|meta
 // 	E.g., $mode="parse"
 $mode="resolve";			// Resolve names
-$mode="";					// Same as $mode="resolve";
+//$mode="";					// Same as $mode="resolve";
 //$mode="parse";			// Parse names
 //$mode="meta";				// Return metadata on TNRS & sources
 //$mode="sources";			// List TNRS sources
 //$mode="citations";		// Return citations for TNRS & sources
-$mode="classifications";	// Return citations for TNRS & sources
+//$mode="classifications";	// Return citations for TNRS & sources
 
 // Taxonomic sources
 // One or more of the following, separated by commas, no spaces:
@@ -103,9 +105,9 @@ $disp_data_array=false;		// Echo raw data as array
 $disp_combined_array=false;	// Echo combined options+data array
 $disp_opts_array=false;		// Echo TNRS options as array
 $disp_opts=true;			// Echo TNRS options
-$disp_json_data=false;		// Echo the options + raw data JSON POST data
+$disp_json_data=true;		// Echo the options + raw data JSON POST data
 $disp_results_json=true;	// Echo results as array
-$disp_results_array=false;	// Echo results as array
+$disp_results_array=true;	// Echo results as array
 $disp_results_csv=true;		// Echo results as CSV text
 $time=true;					// Echo time elapsed
 
@@ -146,7 +148,7 @@ $opts_arr = array(
 ///////////////////////////////
 
 // Import csv data and convert to array
-$data_arr = array_map('str_getcsv', file($DATADIR.$inputfilename));
+$data_arr = array_map('str_getcsv', file($inputfile));
 
 # Get subset
 $data_arr = array_slice($data_arr, 0, $lines);
