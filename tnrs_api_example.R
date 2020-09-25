@@ -7,14 +7,13 @@
 #################################
 
 # Base URL for TNRS api
-# Two alternative end points. Choose one
-# url = "https://tnrsapi.xyz/tnrs_api.php"	# Production (paramo)
-# url = "http://tnrsapidev.xyz/tnrs_api.php" # Dev (vegbiendev)
-url = "http://vegbiendev.nceas.ucsb.edu:8975/tnrs_api.php" # Dev (vegbiendev)
+url = "https://tnrsapi.xyz/tnrs_api.php"		# Production
 
 # Path and name of input file of taxon names 
 # Comma-delimited CSV file, first column an integer ID, second column the name
-#names_file <- "tnrs_api_test_names.csv"
+# Test file from repo:
+#names_file <- "tnrs_api_test_names.csv"	
+# Test file from BIEN  website:
 names_file <- "http://bien.nceas.ucsb.edu/bien/wp-content/uploads/2019/07/tnrs_testfile.csv"
 
 #################################

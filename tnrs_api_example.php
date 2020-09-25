@@ -35,9 +35,7 @@ $lines = 10000000000;
 //$lines = 4;
 
 // api base url 
-$base_url = "https://tnrsapidev.xyz/tnrs_api.php";	// production, not working
-//$base_url = "http://vegbiendev.nceas.ucsb.edu:8975/tnrs_api.new.php"; //test
-$base_url = "http://vegbiendev.nceas.ucsb.edu:8975/tnrs_api.php";	// development, works as of 3/08/2020
+url = "https://tnrsapi.xyz/tnrs_api.php"	# Production
 
 /////////////////////////////////////////
 // TNRS options
