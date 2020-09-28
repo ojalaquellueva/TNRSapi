@@ -15,7 +15,8 @@ require_once("includes/php/status_codes.php");
 // API parameters
 /////////////////////
 
-require_once 'params.php';	// parameters in ALL_CAPS set here
+require_once 'server_params.php';	// parameters in ALL_CAPS set here
+require_once 'params.php';			// parameters in ALL_CAPS set here
 
 // Path and name of file containing input names and political divisions
 $inputfilename = "tnrs_testfile.csv";
