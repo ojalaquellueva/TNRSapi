@@ -20,7 +20,7 @@ require_once 'params.php';	// parameters in ALL_CAPS set here
 // Path and name of file containing input names and political divisions
 $inputfilename = "tnrs_testfile.csv";
 $inputfile = $DATADIR.$inputfilename;
-//$inputfile = "http://bien.nceas.ucsb.edu/bien/wp-content/uploads/2019/07/tnrs_testfile.csv";
+$inputfile = "http://bien.nceas.ucsb.edu/bien/wp-content/uploads/2019/07/tnrs_testfile.csv";
 
 // Desired response format
 //	Options: json*|xml
@@ -36,7 +36,7 @@ $lines = 4;
 
 // api base url 
 $base_url = "https://tnrsapi.xyz/tnrs_api.php";	# Production
-//$base_url = "http://vegbiendev.nceas.ucsb.edu:8975/tnrs_api.php"; # Dev (port)
+$base_url = "http://vegbiendev.nceas.ucsb.edu:8975/tnrs_api.php"; # Dev (port)
 
 /////////////////////////////////////////
 // TNRS options
@@ -58,7 +58,7 @@ $mode="resolve";			// Resolve names
 //$mode="meta";				// Return metadata on TNRS & sources
 // $mode="sources";			// List TNRS sources
 // $mode="citations";		// Return citations for TNRS & sources
-$mode="classifications";	// Return citations for TNRS & sources
+//$mode="classifications";	// Return citations for TNRS & sources
 
 // Taxonomic sources
 // One or more of the following, separated by commas, no spaces:
