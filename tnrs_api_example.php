@@ -32,10 +32,11 @@ $format="json";
 // Use this option to limit test data to small subsample of input file
 // Set to number > # of lines in file to import entire file
 $lines = 10000000000;
-//$lines = 4;
+$lines = 4;
 
 // api base url 
-url = "https://tnrsapi.xyz/tnrs_api.php"	# Production
+$base_url = "https://tnrsapi.xyz/tnrs_api.php";	# Production
+//$base_url = "http://vegbiendev.nceas.ucsb.edu:8975/tnrs_api.php"; # Dev (port)
 
 /////////////////////////////////////////
 // TNRS options
@@ -55,9 +56,9 @@ $mode="resolve";			// Resolve names
 //$mode="";					// Same as $mode="resolve";
 //$mode="parse";			// Parse names
 //$mode="meta";				// Return metadata on TNRS & sources
-//$mode="sources";			// List TNRS sources
-//$mode="citations";		// Return citations for TNRS & sources
-//$mode="classifications";	// Return citations for TNRS & sources
+// $mode="sources";			// List TNRS sources
+// $mode="citations";		// Return citations for TNRS & sources
+$mode="classifications";	// Return citations for TNRS & sources
 
 // Taxonomic sources
 // One or more of the following, separated by commas, no spaces:
@@ -105,7 +106,7 @@ $disp_opts_array=false;		// Echo TNRS options as array
 $disp_opts=true;			// Echo TNRS options
 $disp_json_data=true;		// Echo the options + raw data JSON POST data
 $disp_results_json=true;	// Echo results as array
-$disp_results_array=true;	// Echo results as array
+$disp_results_array=false;	// Echo results as array
 $disp_results_csv=true;		// Echo results as CSV text
 $time=true;					// Echo time elapsed
 
