@@ -305,9 +305,11 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 	} elseif ( $mode=="sources" ) { // CONTINUE mode_if 
 		$sql="
 		SELECT sourceID, sourceName, sourceNameFull, sourceUrl,
+		description, logoUrl, dataUrl,
 		sourceVersion as version, sourceReleaseDate, 
 		dateAccessed AS tnrsDateAccessed
 		FROM source
+		where sourceName='tropicos'
 		;
 		";
 	} elseif ( $mode=="classifications" ) { // CONTINUE mode_if 
@@ -351,7 +353,7 @@ header('Content-type: application/json');
 // browser app
 //header("Access-Control-Allow-Origin: http://localhost:3000");
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, GET, OPTIONS, DELETE");
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Max-Age: 86400");
 
 // The data

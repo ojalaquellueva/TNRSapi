@@ -7,7 +7,7 @@
 #################################
 
 # Base URL for TNRS api
-url = "https://tnrsapi.xyz/tnrs_api.php"		# Production
+url = "http://vegbiendev.nceas.ucsb.edu:8975/tnrs_api.php" 
 
 # Path and name of input file of taxon names 
 # Comma-delimited CSV file, first column an integer ID, second column the name
