@@ -83,8 +83,16 @@ $err_code=0;
 $err_msg="";
 $err=false;
 
-// Make sure request is a POST
-if (strcasecmp($_SERVER['REQUEST_METHOD'], 'POST') != 0) {
+// Make sure request is a pre-flight request or POST
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+	// Send pre-flight response and quit
+	//header("Access-Control-Allow-Origin: http://localhost:3000");	// Dev
+	header("Access-Control-Allow-Origin: *"); // Production
+	header("Access-Control-Allow-Methods: POST, OPTIONS");
+	header("Access-Control-Allow-Headers: Content-type");
+	header("Access-Control-Max-Age: 86400");
+	exit;
+} else if (strcasecmp($_SERVER['REQUEST_METHOD'], 'POST') != 0) {
 	$err_msg="ERROR: Request method must be POST\r\n"; 
 	$err_code=400; goto err;
 }
@@ -309,7 +317,6 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 		sourceVersion as version, sourceReleaseDate, 
 		dateAccessed AS tnrsDateAccessed
 		FROM source
-		where sourceName='tropicos'
 		;
 		";
 	} elseif ( $mode=="classifications" ) { // CONTINUE mode_if 
@@ -342,21 +349,14 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 $results_json = json_encode($results_array);
 
 ///////////////////////////////////
-// Echo the results
+// Send the response
 ///////////////////////////////////
 
-// The header
+// Send the header
+header("Access-Control-Allow-Origin: *");
 header('Content-type: application/json');
 
-// Additional headers to support Cross-Origin Resource Sharing (CORS) 
-// with same-origin policy, for responding to API calls from 
-// browser app
-//header("Access-Control-Allow-Origin: http://localhost:3000");
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
-header("Access-Control-Max-Age: 86400");
-
-// The data
+// Send data
 echo $results_json;
 
 ///////////////////////////////////

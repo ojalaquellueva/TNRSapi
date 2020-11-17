@@ -54,8 +54,8 @@ $lines = 4;
 $mode="resolve";			// Resolve names
 //$mode="";					// Same as $mode="resolve";
 // $mode="parse";			// Parse names
-$mode="meta";				// Return metadata on TNRS & sources
- $mode="sources";			// List TNRS sources
+// $mode="meta";				// Return metadata on TNRS & sources
+// $mode="sources";			// List TNRS sources
 // $mode="citations";		// Return citations for TNRS & sources
 // $mode="classifications";	// Return citations for TNRS & sources
 
@@ -105,8 +105,8 @@ $disp_opts_array=false;		// Echo TNRS options as array
 $disp_opts=true;			// Echo TNRS options
 $disp_json_data=true;		// Echo the options + raw data JSON POST data
 $disp_results_json=true;	// Echo results as array
-$disp_results_array=true;	// Echo results as array
-$disp_results_csv=false;		// Echo results as CSV text
+$disp_results_array=false;	// Echo results as array
+$disp_results_csv=true;		// Echo results as CSV text
 $time=true;					// Echo time elapsed
 
 /////////////////////////////////////////////////////
