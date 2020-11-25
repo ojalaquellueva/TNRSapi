@@ -23,7 +23,16 @@ $NBATCH=25;
 
 # Options "resolve" & "parse" go to TNRSbatch, but other options
 # query database directly
-$TNRS_MODES = array("resolve","parse","meta","sources","citations","classifications");
+$TNRS_MODES = array(
+"resolve",
+"parse",
+"meta",
+"sources",
+"citations",
+"classifications",
+"collaborators",
+"logos"
+);
 
 # Sources are now only "tropicos","tpl","usda" but leaving as-is for
 # backward compatibility. TNRSbatch will ignore the now non-extistent

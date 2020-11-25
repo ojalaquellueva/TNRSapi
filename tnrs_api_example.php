@@ -54,10 +54,14 @@ $lines = 4;
 $mode="resolve";			// Resolve names
 //$mode="";					// Same as $mode="resolve";
 // $mode="parse";			// Parse names
-// $mode="meta";				// Return metadata on TNRS & sources
-// $mode="sources";			// List TNRS sources
-// $mode="citations";		// Return citations for TNRS & sources
+$mode="meta";				// Return metadata on TNRS & sources
+$mode="sources";			// List TNRS sources
+$mode="citations";		// Return citations for TNRS & sources
 // $mode="classifications";	// Return citations for TNRS & sources
+
+//$mode="collaborators";	// Return citations for TNRS & sources
+//$mode="logos";	// Return citations for TNRS & sources
+
 
 // Taxonomic sources
 // One or more of the following, separated by commas, no spaces:
@@ -104,7 +108,7 @@ $disp_combined_array=false;	// Echo combined options+data array
 $disp_opts_array=false;		// Echo TNRS options as array
 $disp_opts=true;			// Echo TNRS options
 $disp_json_data=true;		// Echo the options + raw data JSON POST data
-$disp_results_json=true;	// Echo results as array
+$disp_results_json=false;	// Echo results as array
 $disp_results_array=false;	// Echo results as array
 $disp_results_csv=true;		// Echo results as CSV text
 $time=true;					// Echo time elapsed
@@ -118,7 +122,7 @@ $time=true;					// Echo time elapsed
 // Use default if unset
 $options = getopt("b:m:");
 $batches=isset($options["b"])?$options["b"]:"$NBATCH";	
-// $matches=isset($options["m"])?$options["m"]:"$TNRS_DEF_MATCHES";
+$mode=isset($options["m"])?$options["m"]:$mode;	
 
 ////////////////////////////////////////////////////////////////
 // Main
@@ -130,16 +134,22 @@ echo "\n";
 ///////////////////////////////
 // Make options array
 ///////////////////////////////
-$opts_arr = array(
-	"sources"=>$sources, 
-	"class"=>$class, 
-	"mode"=>$mode,
-	"acc"=>$acc, 
-	"constr_ht"=>$constr_ht, 
-	"constr_ts"=>$constr_ts,
-	"matches"=>$matches,
-	"batches"=>$batches
-	);
+if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) {
+	$opts_arr = array(
+		"sources"=>$sources, 
+		"class"=>$class, 
+		"mode"=>$mode,
+		"acc"=>$acc, 
+		"constr_ht"=>$constr_ht, 
+		"constr_ts"=>$constr_ts,
+		"matches"=>$matches,
+		"batches"=>$batches
+		);
+} else {
+	$opts_arr = array(
+		"mode"=>$mode,
+		);
+}
 
 ///////////////////////////////
 // Make data array
@@ -172,7 +182,13 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) {
 ///////////////////////////////
 
 // Convert to JSON
-$json_data = json_encode(array('opts' => $opts_arr, 'data' => $data_arr));	
+if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) {
+	$json_data = json_encode(array('opts' => $opts_arr, 'data' => $data_arr));
+} else {
+	$json_data = json_encode(array('opts' => $opts_arr));
+}
+
+	
 
 ///////////////////////////////
 // Decompose the JSON
@@ -195,24 +211,38 @@ if ($disp_opts_array) {
 }
 
 if ($disp_opts) {
-	// Convert booleans to text for display
-	$constr_ht_disp = isset($opts['constr_ht']) ?
-		($opts['constr_ht']==true?"true":"false") : "false";
-	$constr_ts_disp = isset($opts['constr_ts']) ?
-		($opts['constr_ts']==true?"true":"false") : "false";
 	$mode_disp = isset($opts['mode']) ? $mode : "resolve";
+	if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) {
+		// Convert booleans to text for display
+		$constr_ht_disp = isset($opts['constr_ht']) ?
+			($opts['constr_ht']==true?"true":"false") : "false";
+		$constr_ts_disp = isset($opts['constr_ts']) ?
+			($opts['constr_ts']==true?"true":"false") : "false";
 	
-	// Echo the options
-	echo "TNRS options:\r\n";
-	echo "  sources: " . $opts['sources'] . "\r\n";
-	echo "  class: " . $opts['class'] . "\r\n";
-	echo "  mode: " . $mode_disp . "\r\n";
-	echo "  acc: " . $opts['acc'] . "\r\n";
-	echo "  constr_ht: " . $constr_ht_disp . "\r\n";
-	echo "  constr_ts: " . $constr_ts_disp . "\r\n";
-	echo "  matches: " . $opts['matches'] . "\r\n";
-	echo "  batches: " . $opts['batches'] . "\r\n";
-	echo "\r\n";
+		// Echo the options
+		echo "TNRS options:\r\n";
+		echo "  mode: " . $mode_disp . "\r\n";
+		echo "  sources: " . $opts['sources'] . "\r\n";
+		echo "  class: " . $opts['class'] . "\r\n";
+		echo "  acc: " . $opts['acc'] . "\r\n";
+		echo "  constr_ht: " . $constr_ht_disp . "\r\n";
+		echo "  constr_ts: " . $constr_ts_disp . "\r\n";
+		echo "  matches: " . $opts['matches'] . "\r\n";
+		echo "  batches: " . $opts['batches'] . "\r\n";
+		echo "\r\n";
+	} else {
+		// Echo the options
+		echo "TNRS options:\r\n";
+		echo "  mode: " . $mode_disp . "\r\n";
+		echo "  sources: \r\n";
+		echo "  class: \r\n";
+		echo "  acc: \r\n";
+		echo "  constr_ht: \r\n";
+		echo "  constr_ts: \r\n";
+		echo "  matches: \r\n";
+		echo "  batches: \r\n";
+		echo "\r\n";
+	}
 }
 
 if ($disp_json_data) {

@@ -306,14 +306,14 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 
 	if ( $mode=="meta" ) { 
 		$sql="
-		SELECT db_version, build_date, code_version
+		SELECT db_version, build_date, code_version, api_version
 		FROM meta
 		;
 		";
 	} elseif ( $mode=="sources" ) { // CONTINUE mode_if 
 		$sql="
 		SELECT sourceID, sourceName, sourceNameFull, sourceUrl,
-		description, logoUrl, dataUrl,
+		description, dataUrl, logo_path,
 		sourceVersion as version, sourceReleaseDate, 
 		dateAccessed AS tnrsDateAccessed
 		FROM source
@@ -334,6 +334,13 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 		SELECT sourceName AS source, citation
 		FROM source
 		WHERE citation IS NOT NULL AND TRIM(citation)<>''
+		;
+		";
+	} elseif ( $mode=="collaborators" ) { // CONTINUE mode_if 
+		$sql="
+		SELECT collaboratorName, collaboratorNameFull, collaboratorUrl, 
+		description, logo_path
+		FROM collaborator
 		;
 		";
 	} else {
