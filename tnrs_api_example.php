@@ -57,10 +57,9 @@ $mode="resolve";			// Resolve names
 $mode="meta";				// Return metadata on TNRS & sources
 $mode="sources";			// List TNRS sources
 $mode="citations";		// Return citations for TNRS & sources
-// $mode="classifications";	// Return citations for TNRS & sources
+$mode="classifications";	// Return citations for TNRS & sources
 
-//$mode="collaborators";	// Return citations for TNRS & sources
-//$mode="logos";	// Return citations for TNRS & sources
+$mode="collaborators";	// Return citations for TNRS & sources
 
 
 // Taxonomic sources
@@ -187,8 +186,6 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) {
 } else {
 	$json_data = json_encode(array('opts' => $opts_arr));
 }
-
-	
 
 ///////////////////////////////
 // Decompose the JSON
