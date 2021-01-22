@@ -331,7 +331,7 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 		SELECT 'tnrs_pub' AS source, publication as citation
 		FROM meta
 		UNION ALL
-		SELECT 'tnrs_url' AS source, citation
+		SELECT 'tnrs' AS source, citation
 		FROM meta
 		UNION ALL
 		SELECT sourceName AS source, citation
