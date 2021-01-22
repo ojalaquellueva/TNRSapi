@@ -328,7 +328,10 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 		";
 	} elseif ( $mode=="citations" ) { // CONTINUE mode_if 
 		$sql="
-		SELECT 'tnrs' AS source, citation
+		SELECT 'tnrs_pub' AS source, publication as citation
+		FROM meta
+		UNION ALL
+		SELECT 'tnrs_url' AS source, citation
 		FROM meta
 		UNION ALL
 		SELECT sourceName AS source, citation
