@@ -2,12 +2,15 @@
 # TNRS API Example
 ###############################################
 
+rm(list=ls())
+
 #################################
 # Parameters
 #################################
 
 # Base URL for TNRS api
-url = "http://vegbiendev.nceas.ucsb.edu:8975/tnrs_api.php" 
+url = "https://tnrsapi.xyz/tnrs_api.php"	# Production on paramo
+#url = "http://vegbiendev.nceas.ucsb.edu:8975/tnrs_api.php"  # Dev on vegbiendev 
 
 # Path and name of input file of taxon names 
 # Comma-delimited CSV file, first column an integer ID, second column the name
