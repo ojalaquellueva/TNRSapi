@@ -8,9 +8,6 @@
 // 	 the process.
 //////////////////////////////////////////////////////
 
-// Load library of http status codes
-require_once("includes/php/status_codes.php");
-
 /////////////////////
 // API parameters
 /////////////////////
@@ -20,10 +17,11 @@ $base_url = "http://vegbiendev.nceas.ucsb.edu:8975/tnrs_api.php";
 
 require_once 'server_params.php';	// server-specific parameters 
 require_once 'params.php';			// general api parameters
+require_once($utilities_path."status_codes.inc.php");
 
 // Path and name of file containing input names and political divisions
 $inputfile = $DATADIR."tnrs_testfile.csv";	// local test file
-$inputfile = "http://bien.nceas.ucsb.edu/bien/wp-content/uploads/2019/07/tnrs_testfile.csv";
+//$inputfile = "http://bien.nceas.ucsb.edu/bien/wp-content/uploads/2019/07/tnrs_testfile.csv";
 
 // Desired response format
 //	Options: json*|xml
@@ -35,7 +33,7 @@ $format="json";
 // Use this option to limit test data to small subsample of input file
 // Set to number > # of lines in file to import entire file
 $lines = 10000000000;
-$lines = 4;
+//$lines = 4;
 
 /////////////////////////////////////////
 // TNRS options
@@ -107,7 +105,7 @@ $disp_combined_array=false;	// Echo combined options+data array
 $disp_opts_array=false;		// Echo TNRS options as array
 $disp_opts=true;			// Echo TNRS options
 $disp_json_data=true;		// Echo the options + raw data JSON POST data
-$disp_results_json=false;	// Echo results as array
+$disp_results_json=true;	// Echo results as array
 $disp_results_array=false;	// Echo results as array
 $disp_results_csv=true;		// Echo results as CSV text
 $time=true;					// Echo time elapsed
@@ -162,6 +160,8 @@ $data_arr = array_slice($data_arr, 0, $lines);
 
 if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) {
 	// Echo raw data
+	echo "Raw data path: $inputfile \r\n";
+
 	echo "The raw data:\r\n";
 	foreach($data_arr as $row) {
 		foreach($row as $key => $value) echo "$value\t"; echo "\r\n";

@@ -21,7 +21,7 @@ $NBATCH=25;
 // Use to test if submitted options allowed
 //////////////////////////////////////////////////
 
-# Options "resolve" & "parse" go to TNRSbatch, but other options
+# Options "resolve" & "parse" go to tnrs_batch, but other options
 # query database directly
 $TNRS_MODES = array(
 "resolve",
@@ -35,7 +35,7 @@ $TNRS_MODES = array(
 );
 
 # Sources are now only "tropicos","tpl","usda" but leaving as-is for
-# backward compatibility. TNRSbatch will ignore the now non-extistent
+# backward compatibility. tnrs_batch will ignore the now non-extistent
 # sources and process will still run without error
 $TNRS_SOURCES = array("tropicos","tpl","gcc","ildis","usda","ncbi");
 

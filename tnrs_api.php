@@ -151,11 +151,11 @@ if ($err) goto err;
 // Check option $mode
 // If "meta", ignore other options and begin
 // processing metadata request. Otherwise 
-// continue processing TNRSbatch request
+// continue processing tnrs_batch request
 ///////////////////////////////////////////
 
 if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
-	// TNRSbatch (no indent)
+	// tnrs_batch (no indent)
 	
 	///////////////////////////////////////////
 	// Extract & validate data
@@ -192,7 +192,7 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 
 	///////////////////////////////////////////
 	// Reset selected options for compatibility 
-	// with TNRSbatch command line syntax
+	// with tnrs_batch command line syntax
 	///////////////////////////////////////////
 
 	// Processing mode
@@ -229,7 +229,7 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 	}
 
 	// Convert array to pipe-delimited file & save
-	// TNRSbatch requires pipe-delimited
+	// tnrs_batch requires pipe-delimited
 	$fp = fopen($file_tmp, "w");
 	$i = 0;
 	foreach ($data_arr as $row) {
@@ -256,7 +256,7 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 	// Form the final command
 	$cmd = $BATCH_DIR . "controller.pl $opt_mode $opt_matches -in '$file_tmp'  -out '$results_file' -sources '$sources' -class $class -nbatch $NBATCH -d t ";
 
-	// Execute the TNRSBatch command
+	// Execute the tnrs_batch command
 	exec($cmd, $output, $status);
 	if ($status) {
 		$err_msg="ERROR: tnrs_batch exit status: $status\r\n";
@@ -305,16 +305,13 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 	// Metadaa requests
 
 	if ( $mode=="meta" ) { 
-		#api_version="$(git describe --abbrev=0)"
-		#api_version="hello world"
-		
+		$api_ver=shell_exec("echo -n $(git describe --abbrev=0)");
+		$code_ver=shell_exec("echo -n $(git --git-dir=../tnrs_batch/.git --work-tree=../tnrs_batch describe --abbrev=0)");
+
 		$sql="
-		SELECT db_version, build_date, code_version, '$api_version'
-		FROM meta
-		;
-		";
-		$sql="
-		SELECT db_version, build_date, code_version, api_version
+		SELECT db_version, build_date, 
+		'$code_ver' AS code_version, 
+		'$api_ver' AS api_version
 		FROM meta
 		;
 		";
