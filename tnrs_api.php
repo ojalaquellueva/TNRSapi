@@ -14,7 +14,7 @@
 
 require_once 'server_params.php';	// parameters in ALL_CAPS set here
 require_once 'params.php';			// parameters in ALL_CAPS set here
-require_once($utilities_path."status_codes.php");
+require_once($utilities_path."status_codes.inc.php");
 
 // Temporary data directory
 $data_dir_tmp = $DATADIR;
