@@ -305,6 +305,14 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 	// Metadaa requests
 
 	if ( $mode=="meta" ) { 
+		#api_version="$(git describe --abbrev=0)"
+		#api_version="hello world"
+		
+		$sql="
+		SELECT db_version, build_date, code_version, '$api_version'
+		FROM meta
+		;
+		";
 		$sql="
 		SELECT db_version, build_date, code_version, api_version
 		FROM meta
