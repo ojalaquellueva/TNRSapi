@@ -21,6 +21,7 @@ require_once($utilities_path."status_codes.inc.php");
 
 // Path and name of file containing input names and political divisions
 $inputfile = $DATADIR."tnrs_testfile.csv";	// local test file
+$inputfile = $DATADIR."testfile.par.api.small";	// local test file
 //$inputfile = "http://bien.nceas.ucsb.edu/bien/wp-content/uploads/2019/07/tnrs_testfile.csv";
 
 // Desired response format
@@ -52,12 +53,12 @@ $lines = 10000000000;
 $mode="resolve";			// Resolve names
 //$mode="";					// Same as $mode="resolve";
 // $mode="parse";			// Parse names
-$mode="meta";				// Return metadata on TNRS & sources
-$mode="sources";			// List TNRS sources
-$mode="citations";		// Return citations for TNRS & sources
-$mode="classifications";	// Return citations for TNRS & sources
-
-$mode="collaborators";	// Return citations for TNRS & sources
+// $mode="meta";				// Return metadata on TNRS & sources
+// $mode="sources";			// List TNRS sources
+// $mode="citations";		// Return citations for TNRS & sources
+// $mode="classifications";	// Return citations for TNRS & sources
+// 
+// $mode="collaborators";	// Return citations for TNRS & sources
 
 
 // Taxonomic sources
@@ -81,7 +82,7 @@ $matches="best";
 // Must be decimal from 0.05 (default) to 1
 //	E.g., $accuracy=0.50;
 //	Do not enclose in quotes, except empty string for default
-$acc=0.05;
+$acc=0.53;
 
 // Constrain by higher taxonomy? (NOT YET IMPLEMENTED)
 //	Options: true|false*
@@ -117,9 +118,11 @@ $time=true;					// Echo time elapsed
 
 // Get options, set defaults for optional parameters
 // Use default if unset
-$options = getopt("b:m:");
+$options = getopt("b:m:a:t:");
 $batches=isset($options["b"])?$options["b"]:"$NBATCH";	
 $mode=isset($options["m"])?$options["m"]:$mode;	
+$acc=isset($options["a"])?$options["a"]:$acc;	
+$matches=isset($options["t"])?$options["t"]:$matches;	
 
 ////////////////////////////////////////////////////////////////
 // Main

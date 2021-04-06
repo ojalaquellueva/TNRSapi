@@ -68,6 +68,7 @@ if (array_key_exists('mode', $opt_arr)) {
 }
 
 // Constain matches by higher taxonomy
+// CURRENTLY NOT IMPLEMENTED
 if (array_key_exists('constr_ht', $opt_arr)) {
 	$constr_ht = $opt_arr['constr_ht'];
 	
@@ -85,6 +86,7 @@ if (array_key_exists('constr_ht', $opt_arr)) {
 }
 
 // Constraint matches by taxonomic sources
+// CURRENTLY NOT IMPLEMENTED
 if (array_key_exists('constr_ts', $opt_arr)) {
 	$constr_ts = $opt_arr['constr_ts'];
 	

@@ -45,8 +45,8 @@ $TNRS_CLASSIFICATIONS = array("tropicos");	// Family classification
 $TNRS_CONSTR_HT = array("true","false"); 	// Constrain by higher taxa
 $TNRS_CONSTR_TS = array("true","false"); 	// Constrain by taxonomic sources
 $TNRS_MATCHES =  array("best","all");		// Matches to return
-$TNRS_ACC_MIN = 0.05;		// Min match accuracy
-$TNRS_ACC_MAX = 1;			// Max match accuracy
+$TNRS_ACC_MIN = 0;		// Min match accuracy: return all matches
+$TNRS_ACC_MAX = 1;		// Max match accuracy: exact matches only
 
 //////////////////////////////////////////////////
 // TNRS default options
@@ -58,6 +58,6 @@ $TNRS_DEF_MODE = "resolve";		// Processing mode
 $TNRS_DEF_CONSTR_HT = "false"; 	// Constrain by higher taxa
 $TNRS_DEF_CONSTR_TS = "false"; 	// Constrain by taxonomic sources
 $TNRS_DEF_MATCHES =  "all";		// Matches to return
-$TNRS_DEF_ACC = 0.05;			// Match accuracy
+$TNRS_DEF_ACC = 0.53;			// Match accuracy
 
 ?>
