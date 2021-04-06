@@ -1,0 +1,3 @@
+[submodule "php_utilities"]
+	path = php_utilities
+	url = https://github.com/ojalaquellueva/php_utilities.git
