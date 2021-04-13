@@ -22,6 +22,7 @@ require_once($utilities_path."status_codes.inc.php");
 // Path and name of file containing input names and political divisions
 $inputfile = $DATADIR."tnrs_testfile.csv";	// local test file
 $inputfile = $DATADIR."testfile.par.api.small";	// local test file
+$inputfile = $DATADIR."tnrs_api_test_names6";	// local test file
 //$inputfile = "http://bien.nceas.ucsb.edu/bien/wp-content/uploads/2019/07/tnrs_testfile.csv";
 
 // Desired response format

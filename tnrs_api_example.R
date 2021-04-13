@@ -5,33 +5,33 @@
 rm(list=ls())
 
 #################################
-# Parameters
+# Parameters & libraries
 #################################
 
 # Base URL for TNRS api
-url = "https://tnrsapi.xyz/tnrs_api.php"	# Production on paramo
-#url = "http://vegbiendev.nceas.ucsb.edu:8975/tnrs_api.php"  # Dev on vegbiendev 
+url = "https://tnrsapi.xyz/tnrs_api.php"	# Production - paramo
 
 # Path and name of input file of taxon names 
 # Comma-delimited CSV file, first column an integer ID, second column the name
-# Test file from repo:
-#names_file <- "tnrs_api_test_names.csv"	
-# Test file from BIEN  website:
 names_file <- "http://bien.nceas.ucsb.edu/bien/wp-content/uploads/2019/07/tnrs_testfile.csv"
+
+# Load libraries
+library(httr)		# API requests
+library(jsonlite) # JSON coding/decoding
+
+# Header for api call
+headers <- list('Accept' = 'application/json', 'Content-Type' = 'application/json', 'charset' = 'UTF-8')
 
 #################################
 # Import the raw data
 #################################
 
-# Load libraries
-library(RCurl) # API requests
-library(jsonlite) # JSON coding/decoding
-
 # Read in example file of taxon names
 data <- read.csv(names_file, header=FALSE)
 
 # Inspect the input data
-head(data,25)
+#head(data,25)
+data
 
 # # Uncomment this to work with smaller sample of the data
 # data <- head(data,10)
@@ -59,14 +59,17 @@ opts_json <- gsub('\\]','',opts_json)
 # Combine the options and data into single JSON object
 input_json <- paste0('{"opts":', opts_json, ',"data":', data_json, '}' )
 
-# Construct the request
-headers <- list('Accept' = 'application/json', 'Content-Type' = 'application/json', 'charset' = 'UTF-8')
-
 # Send the API request
-results_json <- postForm(url, .opts=list(postfields= input_json, httpheader=headers))
+results_json <- POST(url = url,
+                  add_headers('Content-Type' = 'application/json'),
+                  add_headers('Accept' = 'application/json'),
+                  add_headers('charset' = 'UTF-8'),
+                  body = input_json,
+                  encode = "json")
 
 # Convert JSON results to a data frame
-results <-  jsonlite::fromJSON(results_json)
+results_raw <- fromJSON(rawToChar(results_json$content)) 
+results <- as.data.frame(results_raw)
 
 # Inspect the results
 head(results, 10)
@@ -78,10 +81,7 @@ results.t[,3,drop =FALSE]
 
 # Display just the main results fields
 results $match.score <- format(round(as.numeric(results $Overall_score),2), nsmall=2)
-# results[ , c('Name_submitted', 'match.score', 'Name_matched', 'Taxonomic_status', 
-	# 'Accepted_name')
-	# ]
-results[ 1:12, c('Name_submitted', 'match.score', 'Name_matched', 'Taxonomic_status', 
+results[ 1:10, c('Name_submitted', 'match.score', 'Name_matched', 'Taxonomic_status', 
 	'Accepted_name', 'Unmatched_terms')
 	]
 
@@ -110,21 +110,79 @@ input_json <- paste0('{"opts":', opts_json, ',"data":', data_json, '}' )
 headers <- list('Accept' = 'application/json', 'Content-Type' = 'application/json', 'charset' = 'UTF-8')
 
 # Send the API request
-results_json <- postForm(url, .opts=list(postfields= input_json, httpheader=headers))
+results_json <- POST(url = url,
+                  add_headers('Content-Type' = 'application/json'),
+                  add_headers('Accept' = 'application/json'),
+                  add_headers('charset' = 'UTF-8'),
+                  body = input_json,
+                  encode = "json")
 
-results <-  jsonlite::fromJSON(results_json)
+# Convert JSON results to a data frame
+results_raw <- fromJSON(rawToChar(results_json$content)) 
+results <- as.data.frame(results_raw)
 
 # Inspect the results
 head(results, 10)
 
-# Just compare name submitted, name matched and final accepted name
+# Compare name submitted, name matched and final accepted name
 results $match.score <- format(round(as.numeric(results $Overall_score),2), nsmall=2)
 results[ , c('ID', 'Name_submitted', 'match.score', 'Name_matched', 
 	'Taxonomic_status', 'Accepted_name')
 	]
+	
+#################################
+# Example 3: Resolve mode, all matches, 
+# with custom match threshold
+#################################
+rm( list = Filter( exists, c("results", "results_json") ) )
+
+# Set the TNRS options
+sources <- "tropicos,tpl,usda"          # Taxonomic sources
+class <- "tropicos"                             # Family classification
+mode <- "resolve"                              # Processing mode
+matches <- "all"                                 # Return all matches
+
+# Custom match accuracy threshold
+# Default is 0.53; let's set a much higher threshold
+# Any name below this threshold should return "[No match found]"
+acc <- 0.95	                                       # Custom match accuracy threshold
+
+# Convert the options to data frame and then JSON
+opts <- data.frame(c(sources),c(class), c(mode), c(matches), c(acc))
+names(opts) <- c("sources", "class", "mode", "matches", "acc")
+opts_json <-  jsonlite::toJSON(opts)
+opts_json <- gsub('\\[','',opts_json)
+opts_json <- gsub('\\]','',opts_json)
+
+# Combine the options and data into single JSON object
+input_json <- paste0('{"opts":', opts_json, ',"data":', data_json, '}' )
+
+# Construct the request
+headers <- list('Accept' = 'application/json', 'Content-Type' = 'application/json', 'charset' = 'UTF-8')
+
+# Send the API request
+results_json <- POST(url = url,
+                  add_headers('Content-Type' = 'application/json'),
+                  add_headers('Accept' = 'application/json'),
+                  add_headers('charset' = 'UTF-8'),
+                  body = input_json,
+                  encode = "json")
+
+# Convert JSON results to a data frame
+results_raw <- fromJSON(rawToChar(results_json$content)) 
+results <- as.data.frame(results_raw)
+
+# Inspect the results
+head(results, 10)
+
+# Compare name submitted, name matched and final accepted name
+results $match.score <- format(round(as.numeric(results $Overall_score),2), nsmall=2)
+results[ , c('ID', 'Name_submitted', 'match.score', 'Name_matched', 
+	'Taxonomic_status', 'Accepted_name','Accepted_name_author','Source')
+	]
 
 #################################
-# Example 3: Parse mode
+# Example 4: Parse mode
 #################################
 rm( list = Filter( exists, c("results", "results_json") ) )
 
@@ -132,7 +190,7 @@ rm( list = Filter( exists, c("results", "results_json") ) )
 # All we need to do is reset option mode:
 mode <- "parse"		
 
-# Reform the options json again
+# Re-form the options json again
 opts <- data.frame(c(sources),c(class), c(mode))
 names(opts) <- c("sources", "class", "mode")
 opts_json <- jsonlite::toJSON(opts)
@@ -142,10 +200,17 @@ opts_json <- gsub('\\]','',opts_json)
 # Make the options + data JSON
 input_json <- paste0('{"opts":', opts_json, ',"data":', data_json, '}' )
 
-# Send the request again
-results_json <- postForm(url, .opts=list(postfields= input_json, httpheader=headers))
+# Send the API request
+results_json <- POST(url = url,
+                  add_headers('Content-Type' = 'application/json'),
+                  add_headers('Accept' = 'application/json'),
+                  add_headers('charset' = 'UTF-8'),
+                  body = input_json,
+                  encode = "json")
 
-results <- jsonlite::fromJSON(results_json)
+# Convert JSON results to a data frame
+results_raw <- fromJSON(rawToChar(results_json$content)) 
+results <- as.data.frame(results_raw)
 
 # Inspect the results
 head(results, 10)
@@ -155,7 +220,7 @@ results.t <- as.data.frame( t( results[,1:ncol(results)] ) )
 results.t[,2:3,drop =FALSE]
 
 #################################
-# Example 4: Get metadata for current 
+# Example 5: Get metadata for current 
 # TNRS version
 #################################
 rm( list = Filter( exists, c("results", "results_json") ) )
@@ -176,15 +241,21 @@ opts_json <- gsub('\\]','',opts_json)
 # No data needed
 input_json <- paste0('{"opts":', opts_json, '}' )
 
-# Send the request again
-results_json <- postForm(url, .opts=list(postfields= input_json, httpheader=headers))
+# Send the API request
+results_json <- POST(url = url,
+                  add_headers('Content-Type' = 'application/json'),
+                  add_headers('Accept' = 'application/json'),
+                  add_headers('charset' = 'UTF-8'),
+                  body = input_json,
+                  encode = "json")
 
-# Display the results
-results <- jsonlite::fromJSON(results_json)
+# Convert JSON results to a data frame
+results_raw <- fromJSON(rawToChar(results_json$content)) 
+results <- as.data.frame(results_raw)
 print( results )
 
 #################################
-# Example 5: Get metadata for all 
+# Example 6: Get metadata for all 
 # taxonomic sources
 #################################
 rm( list = Filter( exists, c("results", "results_json") ) )
@@ -202,15 +273,21 @@ opts_json <- gsub('\\]','',opts_json)
 # Make the options
 input_json <- paste0('{"opts":', opts_json, '}' )
 
-# Send the request again
-results_json <- postForm(url, .opts=list(postfields= input_json, httpheader=headers))
+# Send the API request
+results_json <- POST(url = url,
+                  add_headers('Content-Type' = 'application/json'),
+                  add_headers('Accept' = 'application/json'),
+                  add_headers('charset' = 'UTF-8'),
+                  body = input_json,
+                  encode = "json")
 
-# Display the results
-results <- jsonlite::fromJSON(results_json)
+# Convert JSON results to a data frame
+results_raw <- fromJSON(rawToChar(results_json$content)) 
+results <- as.data.frame(results_raw)
 print( results )
 
 #################################
-# Example 6: Get bibtex citations for taxonomic 
+# Example 7: Get bibtex citations for taxonomic 
 # sources and the TNRS
 #################################
 rm( list = Filter( exists, c("results", "results_json") ) )
@@ -228,20 +305,26 @@ opts_json <- gsub('\\]','',opts_json)
 # Make the options
 input_json <- paste0('{"opts":', opts_json, '}' )
 
-# Send the request again
-results_json <- postForm(url, .opts=list(postfields= input_json, httpheader=headers))
+# Send the API request
+results_json <- POST(url = url,
+                  add_headers('Content-Type' = 'application/json'),
+                  add_headers('Accept' = 'application/json'),
+                  add_headers('charset' = 'UTF-8'),
+                  body = input_json,
+                  encode = "json")
 
-# Display the results
-results <- jsonlite::fromJSON(results_json)
+# Convert JSON results to a data frame
+results_raw <- fromJSON(rawToChar(results_json$content)) 
+results <- as.data.frame(results_raw)
 print( results )
 
 #################################
-# Example 7: Get all currently available 
+# Example 8: Get all currently available 
 # family classification sources
 #################################
 rm( list = Filter( exists, c("results", "results_json") ) )
 
-# Set citations mode
+# Set mode
 mode <- "classifications"		
 
 # Re-form the options json again
@@ -254,10 +337,47 @@ opts_json <- gsub('\\]','',opts_json)
 # Make the options
 input_json <- paste0('{"opts":', opts_json, '}' )
 
-# Send the request again
-results_json <- postForm(url, .opts=list(postfields= input_json, httpheader=headers))
+# Send the API request
+results_json <- POST(url = url,
+                  add_headers('Content-Type' = 'application/json'),
+                  add_headers('Accept' = 'application/json'),
+                  add_headers('charset' = 'UTF-8'),
+                  body = input_json,
+                  encode = "json")
 
-# Display the results
-results <- jsonlite::fromJSON(results_json)
+# Convert JSON results to a data frame
+results_raw <- fromJSON(rawToChar(results_json$content)) 
+results <- as.data.frame(results_raw)
+print( results )
+
+#################################
+# Example 8: TNRS contributors & acknowledgments
+#################################
+rm( list = Filter( exists, c("results", "results_json") ) )
+
+# Set mode
+mode <- "collaborators"		
+
+# Re-form the options json again
+opts <- data.frame(c(mode))
+names(opts) <- c("mode")
+opts_json <- jsonlite::toJSON(opts)
+opts_json <- gsub('\\[','',opts_json)
+opts_json <- gsub('\\]','',opts_json)
+
+# Make the options
+input_json <- paste0('{"opts":', opts_json, '}' )
+
+# Send the API request
+results_json <- POST(url = url,
+                  add_headers('Content-Type' = 'application/json'),
+                  add_headers('Accept' = 'application/json'),
+                  add_headers('charset' = 'UTF-8'),
+                  body = input_json,
+                  encode = "json")
+
+# Convert JSON results to a data frame
+results_raw <- fromJSON(rawToChar(results_json$content)) 
+results <- as.data.frame(results_raw)
 print( results )
 

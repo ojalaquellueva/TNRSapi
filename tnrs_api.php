@@ -20,6 +20,9 @@ require_once($utilities_path."status_codes.inc.php");
 $data_dir_tmp = $DATADIR;
 $data_dir_tmp = "/tmp/tnrs/";
 
+// Text displayed when no match found
+$no_match_message = '[No match found]';
+
 // Input file name & path
 // User JSON input saved to this file as pipe-delimited text
 // Becomes input for tnrs_batch command (`./controller.pl [...]`)
@@ -39,15 +42,16 @@ $results_file = $data_dir_tmp . $results_filename;
 // Functions
 ///////////////////////////////////
 
-////////////////////////////////////////////////////////
-// Loads results file as an asociative array
-// 
-// Options:
-//	$filepath: path and name of file to import
-//	$delim: field delimiter
-////////////////////////////////////////////////////////
 
 function file_to_array_assoc($filepath, $delim) {
+	/////////////////////////////////////////////////
+	// Loads results file as an asociative array
+	// 
+	// Options:
+	//	$filepath: path and name of file to import
+	//	$delim: field delimiter
+	/////////////////////////////////////////////////
+	
 	$array = $fields = array(); $i = 0;
 	$handle = @fopen($filepath, "r");
 	if ($handle) {
@@ -71,6 +75,37 @@ function file_to_array_assoc($filepath, $delim) {
 	}
 	
 	return $array;
+}
+
+function array_unique_multidimensional($array) {
+	/////////////////////////////////////////////////
+	// Make multidimensional array unique
+	/////////////////////////////////////////////////
+
+	$array = array_map("unserialize", 
+		array_unique(array_map("serialize", $array)));
+	$array = fix_keys($array);	// Fix named keys screwed up by PHP
+	return $array;
+}
+
+function fix_keys($array) {
+	/////////////////////////////////////////////////
+	// Revert conversion of named keys to numeric
+	// Essential! Reparis damage done by PHP after
+	// manipulating multi-dimensional asspciative 
+	// arrays
+	/////////////////////////////////////////////////
+
+    $numberCheck = false;
+    foreach ($array as $k => $val) {
+        if (is_array($val)) $array[$k] = fix_keys($val); //recurse
+        if (is_numeric($k)) $numberCheck = true;
+    }
+    if ($numberCheck === true) {
+        return array_values($array);
+    } else {
+        return $array;
+    }
 }
 
 ////////////////////////////////////////
@@ -278,7 +313,6 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 	
 	// Clean up crap inserted by core service
 	foreach ( $results_array as $rkey => $row ) {
-		
 		$str = $row['Name_submitted'];
 		// Restore double-escaped single quote to single quote
 		$str = str_replace("'\\''", "'", $str);
@@ -300,7 +334,99 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 		$str = str_replace("\\", "", $str);	
 		$results_array[$rkey]['Unmatched_terms']=$str;		
 	}
+	
+	// Filter by match accuracy if applicable
+	if ( $mode != "parse" ) {
+		
+		if ( $acc > 0 ) {
+			
+			foreach ( $results_array as $rkey => $row ) {
+				$score = $row['Overall_score'];
+			
+				# Reset match results for scores < threshold ($acc)
+				if ( $score < $acc ) {
+					$results_array[$rkey]['Overall_score']='';
+					$results_array[$rkey]['Name_matched_id']='';
+					$results_array[$rkey]['Name_matched']=$no_match_message;
+					$results_array[$rkey]['Name_score']='';
+					$results_array[$rkey]['Name_matched_rank']='';
+					$results_array[$rkey]['Author_matched']='';
+					$results_array[$rkey]['Author_score']='';
+					$results_array[$rkey]['Canonical_author']='';
+					$results_array[$rkey]['Name_matched_accepted_family']='';
+					$results_array[$rkey]['Genus_matched']='';
+					$results_array[$rkey]['Genus_score']='';
+					$results_array[$rkey]['Specific_epithet_matched']='';
+					$results_array[$rkey]['Specific_epithet_score']='';
+					$results_array[$rkey]['Family_matched']='';
+					$results_array[$rkey]['Family_score']='';
+					$results_array[$rkey]['Infraspecific_rank']='';
+					$results_array[$rkey]['Infraspecific_epithet_matched']='';
+					$results_array[$rkey]['Infraspecific_epithet_score']='';
+					$results_array[$rkey]['Infraspecific_rank_2']='';
+					$results_array[$rkey]['Infraspecific_epithet_2_matched']='';
+					$results_array[$rkey]['Infraspecific_epithet_2_score']='';
+					$results_array[$rkey]['Unmatched_terms']=$results_array[$rkey]['Name_submitted'];
+					$results_array[$rkey]['Name_matched_url']='';
+					$results_array[$rkey]['Name_matched_lsid']='';
+					$results_array[$rkey]['Phonetic']='';
+					$results_array[$rkey]['Taxonomic_status']='';
+					$results_array[$rkey]['Accepted_name']='';
+					$results_array[$rkey]['Accepted_species']='';
+					$results_array[$rkey]['Accepted_name_author']='';
+					$results_array[$rkey]['Accepted_name_id']='';
+					$results_array[$rkey]['Accepted_name_rank']='';
+					$results_array[$rkey]['Accepted_name_url']='';
+					$results_array[$rkey]['Accepted_name_lsid']='';
+					$results_array[$rkey]['Accepted_family']='';
+					$results_array[$rkey]['Overall_score_order']='';
+					$results_array[$rkey]['Highertaxa_score_order']='';
+					$results_array[$rkey]['Source']='';
+					$results_array[$rkey]['Warnings']='';
+				}
+			}	# END foreach ( $results_array as $rkey => $row )
+		
+			// Remove duplicate rows
+			$results_array = array_unique_multidimensional($results_array); 
 
+			##############################################
+			# Delete "no match" rows if matched row exists
+			##############################################
+
+			// Make new array of names matched
+			$matched_ids = array();
+		
+			// Save IDs where match found
+			foreach ( $results_array as $rkey => $row ) {
+				$matched_val = $row['Name_matched'];
+				if ( $matched_val != $no_match_message ) {
+					array_push( $matched_ids, $results_array[$rkey]['ID'] );
+				}
+			}
+
+			// Remove duplicate values
+			$matched_ids = array_unique($matched_ids);
+		
+			// Delete rows in results where "no match" + "ID matched elsewhere"
+			foreach ( $results_array as $rkey => $row ) {
+				$matched_val = $row['Name_matched'];
+			
+				// If no-match result check ID
+				if ( $matched_val == $no_match_message ) {
+					$id = $row['ID'];
+				
+					// If ID (name) matched elsewhere delete row
+					if ( in_array( $id, $matched_ids ) ) {
+						unset($results_array[$rkey]);
+					} 
+				}
+			}	// END foreach ( $results_array as $rkey => $row )
+			
+		}		// END if ( $acc > 0 )
+		
+	}			// END if ( $mode != "parse" ) 
+	
+	$results_array = fix_keys($results_array);	// Fix named keys screwed up by PHP
 } else {	// CONTINUE mode_if 
 	// Metadaa requests
 
