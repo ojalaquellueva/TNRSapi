@@ -10,7 +10,7 @@ $err_show_sql=false;
 
 // Maximum permitted input rows per request
 // For no limit, set to 0
-$MAX_ROWS=5000;	
+$MAX_ROWS=5001;	
 					
 // Number of batches
 $NBATCH=10000;	
@@ -37,7 +37,7 @@ $TNRS_MODES = array(
 # Sources are now only "tropicos","tpl","usda" but leaving as-is for
 # backward compatibility. tnrs_batch will ignore the now non-extistent
 # sources and process will still run without error
-$TNRS_SOURCES = array("tropicos","tpl","gcc","ildis","usda","ncbi");
+$TNRS_SOURCES = array("tropicos","wfo","wcvp","usda");
 
 #$TNRS_CLASSIFICATIONS = array("tropicos","ncbi");	// Family classification
 $TNRS_CLASSIFICATIONS = array("tropicos");	// Family classification
@@ -52,7 +52,7 @@ $TNRS_ACC_MAX = 1;		// Max match accuracy: exact matches only
 // TNRS default options
 //////////////////////////////////////////////////
 
-$TNRS_DEF_SOURCES = "tpl,gcc,ildis,tropicos,usda";	// Taxonomic sources
+$TNRS_DEF_SOURCES = "tropicos,wcvp";	// Taxonomic sources
 $TNRS_DEF_CLASSIFICATION = "tropicos"; 				// Family classification
 $TNRS_DEF_MODE = "resolve";		// Processing mode
 $TNRS_DEF_CONSTR_HT = "false"; 	// Constrain by higher taxa

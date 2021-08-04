@@ -441,6 +441,14 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 		FROM meta
 		;
 		";
+		
+		$sql="
+		SELECT db_version, build_date, 
+		code_version, 
+		api_version
+		FROM meta
+		;
+		";
 	} elseif ( $mode=="sources" ) { // CONTINUE mode_if 
 		$sql="
 		SELECT sourceID, sourceName, sourceNameFull, sourceUrl,
