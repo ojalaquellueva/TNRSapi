@@ -56,7 +56,7 @@ $mode="resolve";			// Resolve names
 // $mode="parse";			// Parse names
 // $mode="meta";				// Return metadata on TNRS & sources
 // $mode="sources";			// List TNRS sources
-// $mode="citations";		// Return citations for TNRS & sources
+$mode="citations";		// Return citations for TNRS & sources
 // $mode="classifications";	// Return citations for TNRS & sources
 // 
 // $mode="collaborators";	// Return citations for TNRS & sources
@@ -66,7 +66,7 @@ $mode="resolve";			// Resolve names
 // One or more of the following, separated by commas, no spaces:
 //	tpl,gcc,ildis,gcc,tropicos,usda,ncbi
 //	Current default: "tpl,tropicos,usda"
-$sources="tropicos,tpl,usda";		
+$sources="tropicos,wfo,usda";		
 
 // Classification
 // 	Options: tropicos only

@@ -108,6 +108,19 @@ function fix_keys($array) {
     }
 }
 
+/////////////////////////////////////////////////////
+// Send the POST response, with either data or error 
+// message in body. Body MUST be json.
+/////////////////////////////////////////////////////
+
+function send_response($status, $body) {
+	header("Access-Control-Allow-Origin: *");
+	header('Content-type: application/json');
+	http_response_code($status); 
+	echo $body;
+}
+
+
 ////////////////////////////////////////
 // Receive & validate the POST request
 ////////////////////////////////////////
@@ -495,18 +508,20 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 	
 }	// END mode_if
 
-$results_json = json_encode($results_array);
+
 
 ///////////////////////////////////
 // Send the response
 ///////////////////////////////////
 
 // Send the header
-header("Access-Control-Allow-Origin: *");
-header('Content-type: application/json');
+// header("Access-Control-Allow-Origin: *");
+// header('Content-type: application/json');
 
 // Send data
-echo $results_json;
+$results_json = json_encode($results_array);
+send_response($err_code, $results_json);
+exit;
 
 ///////////////////////////////////
 // Error: return http status code
@@ -514,7 +529,7 @@ echo $results_json;
 ///////////////////////////////////
 
 err:
-http_response_code($err_code);
-echo $err_msg;
+$err_json = json_encode($err_msg);
+send_response($err_code, $err_json);
 
 ?>

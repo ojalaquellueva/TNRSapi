@@ -40,7 +40,7 @@ $TNRS_MODES = array(
 $TNRS_SOURCES = array("tropicos","wfo","wcvp","usda");
 
 #$TNRS_CLASSIFICATIONS = array("tropicos","ncbi");	// Family classification
-$TNRS_CLASSIFICATIONS = array("tropicos");	// Family classification
+$TNRS_CLASSIFICATIONS = array("tropicos","wfo");	// Family classification
 
 $TNRS_CONSTR_HT = array("true","false"); 	// Constrain by higher taxa
 $TNRS_CONSTR_TS = array("true","false"); 	// Constrain by taxonomic sources
