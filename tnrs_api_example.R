@@ -30,10 +30,9 @@ headers <- list('Accept' = 'application/json', 'Content-Type' = 'application/jso
 data <- read.csv(names_file, header=FALSE)
 
 # Inspect the input data
-#head(data,25)
 data
 
-# # Uncomment this to work with smaller sample of the data
+# # Uncomment to work with smaller sample of data
 # data <- head(data,10)
 
 # Convert the data to JSON
@@ -44,10 +43,10 @@ data_json <- jsonlite::toJSON(unname(data))
 #################################
 
 # Set the TNRS options
-sources <- "tropicos,tpl,usda"	# Taxonomic sources
-class <- "tropicos"										# Family classification
-mode <- "resolve"										# Processing mode
-matches <- "best"											# Return best match only
+sources <- "tropicos,wfo,wcvp,usda"	# Taxonomic sources
+class <- "tropicos"			# Family classification. Options: "tropicos", "wfo"
+mode <- "resolve"			# Processing mode
+matches <- "best"			# Return best match only
 
 # Convert the options to data frame and then JSON
 opts <- data.frame(c(sources),c(class), c(mode), c(matches))
@@ -74,8 +73,7 @@ results <- as.data.frame(results_raw)
 # Inspect the results
 head(results, 10)
 
-# Display header plus one row vertically
-# to better compare the output fields
+# Display header plus one row vertically to better see the output fields
 results.t <- as.data.frame( t( results[,1:ncol(results)] ) )
 results.t[,3,drop =FALSE]
 
@@ -91,7 +89,7 @@ results[ 1:10, c('Name_submitted', 'match.score', 'Name_matched', 'Taxonomic_sta
 rm( list = Filter( exists, c("results", "results_json") ) )
 
 # Set the TNRS options
-sources <- "tropicos,tpl,usda"					# Taxonomic sources
+sources <- "tropicos,wcvp"					# Taxonomic sources
 class <- "tropicos"										# Family classification
 mode <- "resolve"										# Processing mode
 matches <- "all"											# Return all matches
@@ -124,9 +122,9 @@ results <- as.data.frame(results_raw)
 # Inspect the results
 head(results, 10)
 
-# Compare name submitted, name matched and final accepted name
+# Just compare name submitted, name matched and final accepted name
 results $match.score <- format(round(as.numeric(results $Overall_score),2), nsmall=2)
-results[ , c('ID', 'Name_submitted', 'match.score', 'Name_matched', 
+results[ , c('ID', 'Name_submitted', 'Name_matched', 'match.score', 
 	'Taxonomic_status', 'Accepted_name')
 	]
 	
@@ -137,15 +135,11 @@ results[ , c('ID', 'Name_submitted', 'match.score', 'Name_matched',
 rm( list = Filter( exists, c("results", "results_json") ) )
 
 # Set the TNRS options
-sources <- "tropicos,tpl,usda"          # Taxonomic sources
-class <- "tropicos"                             # Family classification
-mode <- "resolve"                              # Processing mode
-matches <- "all"                                 # Return all matches
-
-# Custom match accuracy threshold
-# Default is 0.53; let's set a much higher threshold
-# Any name below this threshold should return "[No match found]"
-acc <- 0.95	                                       # Custom match accuracy threshold
+sources <- "tropicos,wcvp"			# Taxonomic sources
+class <- "tropicos"								# Family classification
+mode <- "resolve"								# Processing mode
+matches <- "all"									# Return all matches
+acc <- 0.7											# Custom match accuracy threshold
 
 # Convert the options to data frame and then JSON
 opts <- data.frame(c(sources),c(class), c(mode), c(matches), c(acc))
@@ -172,14 +166,12 @@ results_json <- POST(url = url,
 results_raw <- fromJSON(rawToChar(results_json$content)) 
 results <- as.data.frame(results_raw)
 
-# Inspect the results
-head(results, 10)
-
 # Compare name submitted, name matched and final accepted name
+# First few rows
 results $match.score <- format(round(as.numeric(results $Overall_score),2), nsmall=2)
-results[ , c('ID', 'Name_submitted', 'match.score', 'Name_matched', 
+head( results[ , c('ID', 'Name_submitted', 'match.score', 'Name_matched', 
 	'Taxonomic_status', 'Accepted_name','Accepted_name_author','Source')
-	]
+	], 16 )
 
 #################################
 # Example 4: Parse mode
@@ -215,9 +207,9 @@ results <- as.data.frame(results_raw)
 # Inspect the results
 head(results, 10)
 
-# Display header and two rows vertically
-results.t <- as.data.frame( t( results[,1:ncol(results)] ) )
-results.t[,2:3,drop =FALSE]
+# Display header and a few rows vertically
+results.t <- as.data.frame( t( results[ 25:28,1:ncol(results)] ) )
+results.t[,2:4,drop =FALSE]
 
 #################################
 # Example 5: Get metadata for current 
