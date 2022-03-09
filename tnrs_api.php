@@ -355,9 +355,20 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 			
 			foreach ( $results_array as $rkey => $row ) {
 				$score = $row['Overall_score'];
+				$fscore = $row['Family_score'];
+				$gscore = $row['Genus_score'];
+				$sscore = $row['Specific_epithet_score'];
+				$i1score = $row['Infraspecific_epithet_score'];
+				$i2score = $row['Infraspecific_epithet_2_score'];
 			
 				# Reset match results for scores < threshold ($acc)
-				if ( $score < $acc ) {
+				if ( 	$score < $acc && 
+						$fscore < $acc && 
+						$gscore < $acc && 
+						$sscore < $acc && 
+						$i1score < $acc && 
+						$i2score < $acc 
+					) {
 					$results_array[$rkey]['Overall_score']='';
 					$results_array[$rkey]['Name_matched_id']='';
 					$results_array[$rkey]['Name_matched']=$no_match_message;
