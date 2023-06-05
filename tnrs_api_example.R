@@ -43,8 +43,8 @@ data_json <- jsonlite::toJSON(unname(data))
 #################################
 
 # Set the TNRS options
-sources <- "tropicos,wfo,wcvp,usda"	# Taxonomic sources
-class <- "tropicos"			# Family classification. Options: "tropicos", "wfo"
+sources <- "wcvp,wfo"	# Taxonomic sources
+class <- "wfo"			# Family classification. Only current option: "wfo"
 mode <- "resolve"			# Processing mode
 matches <- "best"			# Return best match only
 
@@ -73,7 +73,8 @@ results <- as.data.frame(results_raw)
 # Inspect the results
 head(results, 10)
 
-# Display header plus one row vertically to better see the output fields
+# Display header plus one row vertically
+# to better compare the output fields
 results.t <- as.data.frame( t( results[,1:ncol(results)] ) )
 results.t[,3,drop =FALSE]
 
@@ -86,11 +87,11 @@ results[ 1:10, c('Name_submitted', 'match.score', 'Name_matched', 'Taxonomic_sta
 #################################
 # Example 2: Resolve mode, all matches
 #################################
-rm( list = Filter( exists, c("results", "results_json") ) )
+rm( list = Filter( exists, c("results", "results_json", "results_raw") ) )
 
 # Set the TNRS options
-sources <- "tropicos,wcvp"					# Taxonomic sources
-class <- "tropicos"										# Family classification
+sources <- "wfo,wcvp"					# Taxonomic sources
+class <- "wfo"										# Family classification
 mode <- "resolve"										# Processing mode
 matches <- "all"											# Return all matches
 
@@ -124,19 +125,25 @@ head(results, 10)
 
 # Just compare name submitted, name matched and final accepted name
 results $match.score <- format(round(as.numeric(results $Overall_score),2), nsmall=2)
-results[ , c('ID', 'Name_submitted', 'Name_matched', 'match.score', 
+results[ , c('ID', 'Name_submitted', 'match.score', 'Name_matched', 
 	'Taxonomic_status', 'Accepted_name')
+	]
+
+results $match.score <- format(round(as.numeric(results $Overall_score),2), nsmall=2)
+results[1:10, c('Name_submitted', 'match.score', 'Name_matched', 'Taxonomic_status', 
+	'Accepted_name', 'Unmatched_terms')
 	]
 	
 #################################
 # Example 3: Resolve mode, all matches, 
 # with custom match threshold
 #################################
-rm( list = Filter( exists, c("results", "results_json") ) )
+rm( list = Filter( exists, c("results", "results_json", "results_raw") ) )
 
 # Set the TNRS options
-sources <- "tropicos,wcvp"			# Taxonomic sources
-class <- "tropicos"								# Family classification
+#sources <- "wfo,wcvp,tropicos"			# Taxonomic sources
+sources <- "wfo,wcvp"					# Taxonomic sources
+class <- "wfo"								# Family classification
 mode <- "resolve"								# Processing mode
 matches <- "all"									# Return all matches
 acc <- 0.7											# Custom match accuracy threshold
@@ -166,25 +173,29 @@ results_json <- POST(url = url,
 results_raw <- fromJSON(rawToChar(results_json$content)) 
 results <- as.data.frame(results_raw)
 
-# Compare name submitted, name matched and final accepted name
-# First few rows
+# Inspect the results
+head(results, 10)
+
+# Just compare name submitted, name matched and final accepted name
 results $match.score <- format(round(as.numeric(results $Overall_score),2), nsmall=2)
-head( results[ , c('ID', 'Name_submitted', 'match.score', 'Name_matched', 
+results[ , c('ID', 'Name_submitted', 'match.score', 'Name_matched', 
 	'Taxonomic_status', 'Accepted_name','Accepted_name_author','Source')
-	], 16 )
+	]
 
 #################################
 # Example 4: Parse mode
 #################################
-rm( list = Filter( exists, c("results", "results_json") ) )
+rm( list = Filter( exists, c("results", "results_json", "results_raw") ) )
 
 # Let's just parse the names instead
 # All we need to do is reset option mode:
 mode <- "parse"		
 
 # Re-form the options json again
-opts <- data.frame(c(sources),c(class), c(mode))
-names(opts) <- c("sources", "class", "mode")
+# Note that only option "mode" is needed
+opts <- data.frame(c(mode))
+names(opts) <- c("mode")
+
 opts_json <- jsonlite::toJSON(opts)
 opts_json <- gsub('\\[','',opts_json)
 opts_json <- gsub('\\]','',opts_json)
@@ -207,15 +218,15 @@ results <- as.data.frame(results_raw)
 # Inspect the results
 head(results, 10)
 
-# Display header and a few rows vertically
-results.t <- as.data.frame( t( results[ 25:28,1:ncol(results)] ) )
-results.t[,2:4,drop =FALSE]
+# Display header and two rows vertically
+results.t <- as.data.frame( t( results[,1:ncol(results)] ) )
+results.t[,2:3,drop =FALSE]
 
 #################################
 # Example 5: Get metadata for current 
 # TNRS version
 #################################
-rm( list = Filter( exists, c("results", "results_json") ) )
+rm( list = Filter( exists, c("results", "results_json", "results_raw") ) )
 
 # All we need to do is reset option mode.
 # all other options will be ignored
@@ -250,7 +261,7 @@ print( results )
 # Example 6: Get metadata for all 
 # taxonomic sources
 #################################
-rm( list = Filter( exists, c("results", "results_json") ) )
+rm( list = Filter( exists, c("results", "results_json", "results_raw") ) )
 
 # Set sources mode
 mode <- "sources"		
@@ -282,7 +293,7 @@ print( results )
 # Example 7: Get bibtex citations for taxonomic 
 # sources and the TNRS
 #################################
-rm( list = Filter( exists, c("results", "results_json") ) )
+rm( list = Filter( exists, c("results", "results_json", "results_raw") ) )
 
 # Set citations mode
 mode <- "citations"		
@@ -314,7 +325,7 @@ print( results )
 # Example 8: Get all currently available 
 # family classification sources
 #################################
-rm( list = Filter( exists, c("results", "results_json") ) )
+rm( list = Filter( exists, c("results", "results_json", "results_raw") ) )
 
 # Set mode
 mode <- "classifications"		
@@ -345,7 +356,7 @@ print( results )
 #################################
 # Example 8: TNRS contributors & acknowledgments
 #################################
-rm( list = Filter( exists, c("results", "results_json") ) )
+rm( list = Filter( exists, c("results", "results_json", "results_raw") ) )
 
 # Set mode
 mode <- "collaborators"		

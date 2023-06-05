@@ -13,7 +13,6 @@ if ( $err_show_sql ) {
 	$sql_disp = "";
 }
 
-
 // connect to the db
 $link = mysqli_connect($HOST,$USER,$PWD,$DB);
 

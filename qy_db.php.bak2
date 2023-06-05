@@ -14,14 +14,22 @@ if ( $err_show_sql ) {
 }
 
 
+
 // connect to the db
 $link = mysqli_connect($HOST,$USER,$PWD,$DB);
 
+if (!link) {
+	echo "ERROR";
+} else {
+	echo "SUCCESS";
+}
+
+/*
 // check connection
 if (mysqli_connect_errno()) {
 	echo "Connection failed: ". mysqli_connect_error();
 	exit();
-}
+}	
 
 $qy = mysqli_query($link,$sql) or die('Query failed!'.$sql_disp);
 
@@ -36,5 +44,6 @@ if(mysqli_num_rows($qy)) {
 
 // disconnect from the db
 @mysqli_close($link);
+*/
 
 ?>
