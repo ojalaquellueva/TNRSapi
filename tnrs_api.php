@@ -16,6 +16,11 @@ require_once 'server_params.php';	// parameters in ALL_CAPS set here
 require_once 'params.php';			// parameters in ALL_CAPS set here
 require_once($utilities_path."status_codes.inc.php");
 
+/* 
+// Needed to retrieve $DB (db name) for version-specific options
+require_once $CONFIG_DIR.'db_config.php';
+ */
+
 // Temporary data directory
 $data_dir_tmp = $DATADIR;
 $data_dir_tmp = "/tmp/tnrs/";
@@ -455,6 +460,7 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 	// Metadaa requests
 
 	if ( $mode=="meta" ) { 
+/* 
 		$api_ver=shell_exec("echo -n $(git describe --abbrev=0)");
 		$code_ver=shell_exec("echo -n $(git --git-dir=../tnrs_batch/.git --work-tree=../tnrs_batch describe --abbrev=0)");
 
@@ -465,14 +471,29 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 		FROM meta
 		;
 		";
-		
-		$sql="
-		SELECT db_version, build_date, 
-		code_version, 
-		api_version
-		FROM meta
-		;
-		";
+ */
+		if ( stripos($DB, "tnrs_4_2") !== FALSE ) {
+			// Old version
+			$sql="
+			SELECT db_version, 
+			build_date, 
+			code_version, 
+			api_version
+			FROM meta
+			;
+			";
+		} else {
+			# New version, includes app_version
+			$sql="
+			SELECT app_version, 
+			db_version, 
+			build_date, 
+			code_version, 
+			api_version
+			FROM meta
+			;
+			";
+		}	
 	} elseif ( $mode=="sources" ) { // CONTINUE mode_if 
 		$sql="
 		SELECT sourceID, sourceName, sourceNameFull, sourceUrl,
