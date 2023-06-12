@@ -1,5 +1,15 @@
 <?php
 
+/* 
+# For troubleshooting
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+$CONFIG_DIR="/home/boyle/bien/tnrs/config/";
+$err_show_sql=FALSE;
+$sql="SELECT app_version, db_version, build_date, code_version, api_version FROM meta";
+ */
+
 ////////////////////////////////////////////////////////
 // Queries database with supplied sql ($sql)
 ////////////////////////////////////////////////////////
@@ -12,7 +22,6 @@ if ( $err_show_sql ) {
 } else {
 	$sql_disp = "";
 }
-
 
 // connect to the db
 $link = mysqli_connect($HOST,$USER,$PWD,$DB);

@@ -494,7 +494,6 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 			;
 			";
 		}	
-		
 	} elseif ( $mode=="sources" ) { // CONTINUE mode_if 
 		$sql="
 		SELECT sourceID, sourceName, sourceNameFull, sourceUrl,
@@ -540,6 +539,8 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 	include("qy_db.php"); 
 	
 }	// END mode_if
+
+
 
 ///////////////////////////////////
 // Send the response
