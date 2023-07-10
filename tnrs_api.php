@@ -96,8 +96,8 @@ function array_unique_multidimensional($array) {
 function fix_keys($array) {
 	/////////////////////////////////////////////////
 	// Revert conversion of named keys to numeric
-	// Essential! Reparis damage done by PHP after
-	// manipulating multi-dimensional asspciative 
+	// Essential! Repairs mess made by PHP after
+	// manipulating multi-dimensional associative 
 	// arrays
 	/////////////////////////////////////////////////
 
@@ -125,7 +125,6 @@ function send_response($status, $body) {
 	echo $body;
 }
 
-
 ////////////////////////////////////////
 // Receive & validate the POST request
 ////////////////////////////////////////
@@ -146,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 	header("Access-Control-Max-Age: 86400");
 	exit;
 } else if (strcasecmp($_SERVER['REQUEST_METHOD'], 'POST') != 0) {
-	$err_msg="ERROR: Request method must be POST\r\n"; 
+	$err_msg="ERROR: Request method must be POST"; 
 	$err_code=400; goto err;
 }
  
@@ -154,7 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // set to application/json
 $contentType = isset($_SERVER["CONTENT_TYPE"]) ? trim($_SERVER["CONTENT_TYPE"]) : '';
 if (strcasecmp($contentType, 'application/json') != 0) {
-	$err_msg="ERROR: Content type must be: application/json\r\n"; 
+	$err_msg="ERROR: Content type must be: application/json"; 
 	$err_code=400; goto err;
 }
  
@@ -171,7 +170,7 @@ $input_array = json_decode($input_json, true);
 
 // If json_decode failed, the JSON is invalid.
 if (!is_array($input_array)) {
-	$err_msg="ERROR: Received content contained invalid JSON!\r\n";	
+	$err_msg="ERROR: Received content contains invalid JSON!";	
 	$err_code=400; goto err;
 }
 
@@ -188,7 +187,7 @@ if (!is_array($input_array)) {
 
 // Get options and data from JSON
 if ( ! ( $opt_arr = isset($input_array['opts'])?$input_array['opts']:false ) ) {
-	$err_msg="ERROR: No TNRS options (element 'opts' in JSON request)\r\n";	
+	$err_msg="ERROR: No options (element 'opts') in JSON request!";	
 	$err_code=400; goto err;
 }
 
@@ -216,14 +215,14 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 
 	// Get data from JSON
 	if ( !( $data_arr = isset($input_array['data'])?$input_array['data']:false ) ) {
-		$err_msg="ERROR: No data (element 'data' in JSON request)\r\n";	
+		$err_msg="ERROR: No data (element 'data') in JSON request";	
 		$err_code=400; goto err;
 	}
 
 	# Check payload size
 	$rows = count($data_arr);
 	if ( $rows>$MAX_ROWS && $MAX_ROWS>0 ) {
-		$err_msg="ERROR: Requested $rows rows exceeds $MAX_ROWS row limit\r\n";	
+		$err_msg="ERROR: Requested $rows rows exceeds $MAX_ROWS row limit";	
 		$err_code=413;	# 413 Payload Too Large
 		goto err; 
 	}
@@ -236,11 +235,11 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 		$values=0;
 		foreach($row as $value) $values++;
 		if ($values<>2) {
-			$err_msg="ERROR: Data has wrong number of columns in one or more rows, should be exactly 2\r\n"; $err_code=400; goto err;
+			$err_msg="ERROR: Data has wrong number of columns, should be exactly 2"; $err_code=400; goto err;
 		}
 	}
 	if ($rows==0) {
-		$err_msg="ERROR: No data rows!\r\n"; $err_code=400; goto err; 
+		$err_msg="ERROR: No data rows!"; $err_code=400; goto err; 
 	}
 
 	///////////////////////////////////////////
@@ -277,7 +276,7 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 	$cmd="mkdir -p $data_dir_tmp";
 	exec($cmd, $output, $status);
 	if ($status) {
-		$err_msg="ERROR: Unable to create temp data directory\r\n";	
+		$err_msg="ERROR: Unable to create temp data directory";	
 		$err_code=500; goto err;
 	}
 
@@ -295,9 +294,8 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 	// Run dos2unix to fix stupid DOS/Mac/Excel/UTF-16 issues, if any
 	$cmd = "dos2unix $file_tmp";
 	exec($cmd, $output, $status);
-	//if ($status) die("ERROR: tnrs_batch non-zero exit status");
 	if ($status) {
-		$err_msg="Failed file conversion: dos2unix\r\n";
+		$err_msg="Failed file conversion: dos2unix";
 		$err_code=500; goto err;
 	}
 
@@ -312,7 +310,7 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 	// Execute the tnrs_batch command
 	exec($cmd, $output, $status);
 	if ($status) {
-		$err_msg="ERROR: tnrs_batch exit status: $status\r\n";
+		$err_msg="ERROR: tnrs_batch exit status: $status";
 		$err_code=500; goto err;
 	}
 	//if ($status) die("
@@ -531,8 +529,16 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 		FROM collaborator
 		;
 		";
+	} else if ( $mode=="dd" ) { 
+		// Retrieve output data dictionary
+		$sql="
+		SELECT col_name, ordinal_position, data_type, description
+		FROM dd_output
+		ORDER BY ordinal_position
+		;
+		";
 	} else {
-		$err_msg="ERROR: Unknown opt mode '$mode'\r\n"; 
+		$err_msg="ERROR: Unknown opt mode '$mode'"; 
 		$err_code=400; goto err;
 	}
 	
