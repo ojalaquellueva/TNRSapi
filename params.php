@@ -60,9 +60,14 @@ if ( $DB=="tnrs_4_2" ) {
 	$TNRS_DEF_SOURCES = "wfo,wcvp";
 	$TNRS_CLASSIFICATIONS = array("wfo");
 	$TNRS_DEF_CLASSIFICATION = "wfo";
+} else if ( $DB=="tnrs_4_4" ) {
+	$TNRS_SOURCES = array("wfo","wcvp","cact");
+	$TNRS_DEF_SOURCES = "wfo,wcvp";
+	$TNRS_CLASSIFICATIONS = array("wfo","wcvp");
+	$TNRS_DEF_CLASSIFICATION = "wfo";
 } else {
 	// Fallback: all historical sources for backward-compatibility
-	$TNRS_SOURCES = array("tropicos","wfo","wcvp","usda");
+	$TNRS_SOURCES = array("tropicos","wfo","wcvp","usda","cact");
 	$TNRS_DEF_SOURCES = "tropicos,wcvp";	
 	$TNRS_CLASSIFICATIONS = array("tropicos","wfo");
 	$TNRS_DEF_CLASSIFICATION = "wfo"; 

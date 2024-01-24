@@ -349,6 +349,29 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 		// Remove backslashes
 		$str = str_replace("\\", "", $str);	
 		$results_array[$rkey]['Unmatched_terms']=$str;		
+		
+		// Convert cryptic warning numbers to plain English
+		$w_num = $row['Warnings'];
+		static $warning_text=array(
+			'0'=>'',
+			'1'=>'[Partial]',
+			'2'=>'[Ambiguous]',
+			'4'=>'[HigherTaxa]',
+			'8'=>'[Overall]',
+			'3'=>'[Partial] [Ambiguous]',
+			'5'=>'[Partial] [HigherTaxa]',
+			'9'=>'[Partial] [Overall]',
+			'6'=>'[Ambiguous] [HigherTaxa]',
+			'10'=>'[Ambiguous] [Overall]',
+			'12'=>'[HigherTaxa] [Overall]',
+			'7'=>'[Partial] [Ambiguous] [HigherTaxa]',
+			'11'=>'[Partial] [Ambiguous] [Overall]',
+			'13'=>'[Partial] [HigherTaxa] [Overall]',
+			'14'=>'[Ambiguous] [HigherTaxa] [Overall]',
+			'15'=>'[Partial] [Ambiguous] [HigherTaxa] [Overall]'
+		);
+		$w_txt=$warning_text[$w_num];
+		$results_array[$rkey]['WarningsEng']=$w_txt;
 	}
 	
 	// Filter by match accuracy if applicable
@@ -393,7 +416,7 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 					$results_array[$rkey]['Infraspecific_rank_2']='';
 					$results_array[$rkey]['Infraspecific_epithet_2_matched']='';
 					$results_array[$rkey]['Infraspecific_epithet_2_score']='';
-					$results_array[$rkey]['Unmatched_terms']=$results_array[$rkey]['Name_submitted'];
+					$results_array[$rkey]['Unmatched_terms']= $results_array[$rkey]['Name_submitted'];
 					$results_array[$rkey]['Name_matched_url']='';
 					$results_array[$rkey]['Name_matched_lsid']='';
 					$results_array[$rkey]['Phonetic']='';
@@ -496,7 +519,7 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 	} elseif ( $mode=="sources" ) { // CONTINUE mode_if 
 		$sql="
 		SELECT sourceID, sourceName, sourceNameFull, sourceUrl,
-		description, dataUrl, logo_path,
+		description, dataUrl, logo_path, isDefault,
 		sourceVersion as version, sourceReleaseDate, 
 		dateAccessed AS tnrsDateAccessed
 		FROM source
