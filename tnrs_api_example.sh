@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #############################################################
-# Example of querying the TNRS API from bash
+# Example of querying the TNRS API from Linux Bash shell
 #
 # Takes as input a simple CSV file of taxonomic names preceded by integer IDs
 # Resolves or parses the names, using options set in Parameters section.
@@ -50,7 +50,8 @@ prepare_f_in="t"
 # Omit trailing slash
 # Set this to location of input and output files
 # Over-ridden by file path and name supplied with -f option
-datadir="/home/bien/tnrs/admin/bugs/tnrs_batch_issue_6"
+# "." sets uses same directory as this script
+datadir="."
 
 # Input file basename (minus ".csv" extension)
 # Content is created on the fly (see Main, below) and saved to this file
