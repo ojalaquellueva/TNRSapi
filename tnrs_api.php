@@ -520,6 +520,7 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 	} elseif ( $mode=="sources" ) { // CONTINUE mode_if 
 		$sql="
 		SELECT sourceID, sourceName, sourceNameFull, sourceUrl,
+		geographic_scope, taxonomic_scope, `scope`,
 		description, dataUrl, logo_path, isDefault,
 		sourceVersion as version, sourceReleaseDate, 
 		dateAccessed AS tnrsDateAccessed
