@@ -234,8 +234,8 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 		$rows++;
 		$values=0;
 		foreach($row as $value) $values++;
-		if ($values!=2) {
-			$err_msg="ERROR: Data has wrong number of columns, should be exactly 2"
+		if ($values!= 2) {
+			$err_msg="ERROR: Data has wrong number of columns, should be exactly 2";
 			$err_code=400; goto err;
 		}
 	}
