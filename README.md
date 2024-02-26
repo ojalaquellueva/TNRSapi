@@ -173,15 +173,7 @@ All example scripts are in the `example_scripts/` subdirectory.
 ##### Usage:
 
 ```
-#	tnrsapi.sh [-q|--quiet] [-v|--verbose] 
-#		[-f </absolute/path/and/inputfilename.csv>]
-#		[-o </absolute/path/and/outputfilename.csv>]
-#		[-u <tnrs_api_url>]
-#		[-m|--mode {resolve|parse}]
-#		[-s|--sources <taxonomic,sources,comma,delimited>]
-#		[-c|--class <familyclassificationsourcename>]
-#		[-a|--allmatches]
-#		[-k|--keep_files]
+$ tnrsapi.sh [-q|--quiet] [-v|--verbose] [-f </absolute/path/and/inputfilename.csv>] [-o </absolute/path/and/outputfilename.csv>] [-u <tnrs_api_url>] [-m|--mode {resolve|parse}] [-s|--sources <taxonomic,sources,comma,delimited>] [-c|--class <familyclassificationsourcename>] [-a|--allmatches] [-k|--keep_files]
 ```
 
 ##### Options:
@@ -204,7 +196,7 @@ Option | Purpose | Followed by value | Default | Notes
 * The example below specific input and output files, taxonomic sources wcvp and cact, all matches and runs in verbose mode
 
 ```
-tnrsapi.sh -f /home/boyle/tnrs/data/example_names.csv -o /home/boyle/tnrs/data/example_names_resolved.csv -a -s wcvp,cact -v
+$ tnrsapi.sh -f /home/boyle/tnrs/data/example_names.csv -o /home/boyle/tnrs/data/example_names_resolved.csv -a -s wcvp,cact -v
 ```
 ##### Installation:
 * Run from same directory as script only: `./tnrsapi.sh`
