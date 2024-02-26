@@ -1,22 +1,23 @@
 ###############################################
-# TNRS API Example
+# Example of calling the TNRS API from R
+# 
+# This example shows how to build your own functions for
+# more efficient API calls
+#
+# Authors: Brad Boyle (bboyle@arizona.edu)
 ###############################################
 
 rm(list=ls())
 
-#################################################
+#################################
 # Parameters & libraries
-#################################################
+#################################
 
 ##################
-# Base URLs - choose one
+# Base URL
 ##################
 
-# Production
 url = "https://tnrsapi.xyz/tnrs_api.php"	
-
-# Public development on vegbiendev (for testing development versions)
-url = "http://vegbiendev.nceas.ucsb.edu:9975/tnrs_api.php" 
 
 ##################
 # Libraries
@@ -26,19 +27,45 @@ library(httr)		# API requests
 library(jsonlite) # JSON coding/decoding
 
 ##################
-# Input data
+# Test data
 ##################
 
-# Example names file 
-example_file <- "http://bien.nceas.ucsb.edu/bien/wp-content/uploads/2019/07/tnrs_testfile.csv"
+# Use external file or data frame created in this script (see below)? 
+# Options: "file"|"df"
+names_src<-"file"
+names_src<-"df"
 
-# File of names to resolve, change  as needed. 
-# If you use your own file, it must use the same format as the example file: 
-# * CSV UTF8
-# * first column an integer ID
-# * second column the taxon name
-names_file <- example_file
-	
+#########################################
+# Test names
+# CSV file with 2 columns: ID {integer}, Name_submitted
+# Column names don't matter, but number of columns does
+# Also include header, or first name will be treated as the header and lost
+#########################################
+
+######################
+# Files
+# Requires names_src=="file"
+######################
+
+# Test names file at a stable URL that can be used any time
+names_file <- 
+	"http://bien.nceas.ucsb.edu/bien/wp-content/uploads/2019/07/tnrs_testfile.csv"
+
+######################
+# Roll your own df of test names
+# Requires names_src=="df"
+######################
+
+names_df <- data.frame(
+"ID"=c(1,2,3,4,5), 
+"Name_submitted"=c(
+	"Andropogon gerardii", 
+	"Andropogon gerardi",
+	"Cephaelis elata",
+	"Pinus pondersa Lawson",
+	"Carnagia gigantea")
+)
+
 ##################
 # Misc parameters
 ##################
@@ -51,9 +78,9 @@ api_vars <- c("mode", "sources", "class", "matches", "acc")
 # Avoids confusion with previous results if API call fails
 response_vars <- c("request_json", "response_json", "response")
 
-#################################################
+#################################
 # Functions
-#################################################
+#################################
 
 make_request_json <- function( mode,	# API mode; required
 	sources=NULL,		# Taxonomic sources
@@ -170,8 +197,8 @@ tnrs_request <- function(url, mode,	# Required
 	
 	if ( ncol(response_df)==1 ) {
 		colnames(response_df) <- "error"
-		response_df$http_status <- response_json$status
 	}
+	response_df$http_status <- response_json$status
 
 	return( response_df )
 }
@@ -186,12 +213,12 @@ specify_decimal <- function(x, k) {
 	return( x.formatted )
 }
 
-#################################################
+########################################
 # Main
-#################################################
+########################################
 
 #################################
-# Example 1: Metadata
+# Example 1: Check metadata
 #
 # Available metadata calls: 
 # "meta", "sources", "class", "citations", "collaborators"
@@ -240,43 +267,47 @@ collaborators <- tnrs_request(url=url, mode=mode)
 collaborator.codes  <- as.vector(t(collaborators$collaboratorName))
 
 # Display results
-cat("TNRS version: ", tnrs_version, "\n")
-cat("DB version: ", db_version, " (", db_date, ")\n")
-cat("Available taxonomic sources: ", sources, "\n")
-cat("Available family classifications: ", classifications, "\n")
-cat(" \r\n")
-
-cat("Taxonomic source details:\n")
+cat("TNRS version: ", tnrs_version, "\n", sep="")
+cat("TNRS URL: ", url, "\n", sep="")
+cat("DB version: ", db_version, " (", db_date, ")\n", sep="")
+cat("Available taxonomic sources: ", sources, "\n", sep="")
+cat("Available family classifications: ", classifications, "\n", sep="")
+cat("Taxonomic source details:\n", sep="")
 print(source.details, row.names=FALSE)
-cat(" \r\n")
+cat("WFO citation:")
+print(wfo_citation, row.names=FALSE)
+cat("Cactaceae (cact) citation:")
+print(wfo_citation, row.names=FALSE)
 
-cat("\r\nCitations:")
-for (i in 1:nrow(citations)) { 
-	cat(citations$source[ i ], ":\r\n", sep="")
-	cat("  ", citations$citation[ i ], ":\r\n", sep="")
-}
-	cat(" \r\n")
-
-cat("\r\nTNRS collaborators:\r\n")
-cat(collaborator.codes, sep = "\r\n")
-cat(" \r\n")
+cat("TNRS collaborators: ", collaborator.codes, "\n", sep="")
 
 #################################
-# Example 2: Resolve mode, best match only
-#################################
-
 # Load test data
-data <- read.csv(names_file, header=FALSE)
+#################################
+
+if ( names_src=="file" ) {
+	data <- read.csv(names_file, header=FALSE)
+} else if ( names_src=="df" ) {
+	data <- names_df
+} else {
+	stop( paste0( "ERROR: invalid value '", names_src, "' for parameter names_src" ) )
+}
+
 colnames(data) <- c("ID", "Name_submitted")
 data <- head(data, 10) # Just a sample
 cat("Raw names:\n")
 print(data)
 
+#################################
+# Example 1: Resolve mode, best match only
+#################################
+
 # Clear existing variables
 suppressWarnings( rm( list = Filter( exists, c(response_vars, api_vars ) ) ) )
 
 # Set options
-sources <- "wcvp,wfo"		# Taxonomic sources
+sources <- "wfo,wcvp"		# Taxonomic sources
+#sources <- "cact"		# Taxonomic sources
 class <- "wfo"					# Family classification. Only current option: "wfo"
 mode <- "resolve"			# Processing mode
 matches <- "best"			# Return best match only
@@ -292,38 +323,38 @@ if ( colnames(response)[1]=="error" ) {
 		))
 	results_cols_basic <- c(
 		"ID", "Name_submitted","Overall_score", 	"Name_matched", 
-		"Accepted_name", "Accepted_name_author",	"Source"
+		"Accepted_family", "Accepted_name", "Accepted_name_author",	"Taxonomic_status", "Source"
 	)
 	print( response[ , results_cols_basic ]	)
 }
 
 #################################
-# Example 3: Resolve mode, all matches
+# Example 2: Resolve mode, all matches
 #################################
 
 # Clear existing variables
 suppressWarnings( rm( list = Filter( exists, c(response_vars, api_vars ) ) ) )
 
-# Fewer rows of the shorter names
-data.small <- data[c(1:2, 4:7), ]
+# # Fewer rows of the shorter names
+# data.small <- data[c(1:2, 4:7), ]
 
 # Set options
 mode <- "resolve"						
-sources <- "wfo,wcvp"	
+sources <- "wfo"	
 class <- "wfo"
 matches <- "all"		# Return all matches
 
 response <- tnrs_request(url=url, mode=mode, matches=matches, 
-	source=sources, class=class, data= data.small	)
+	source=sources, class=class, data= data	)
 if ( colnames(response)[1]=="error" ) {
 	print( response )
 } else {
 	response$Overall_score <- as.numeric(lapply( 
 		as.numeric(response$Overall_score), FUN=specify_decimal, k=2
 		))
-	results_cols <- c(results_cols_basic,
-		 c("Overall_score_order", "Highertaxa_score_order", "Warnings")
-	)
+	results_cols <- c(results_cols_basic, c(
+		"Taxonomic_status", "Overall_score_order", "Highertaxa_score_order", "Warnings"
+		) )
 	print( response[ , results_cols ]	)
 }
 
@@ -338,13 +369,13 @@ suppressWarnings( rm( list = Filter( exists, c(response_vars, api_vars ) ) ) )
 
 # Set options
 mode <- "resolve"						
-sources <- "wfo,wcvp"	
+sources <- "wfo"	
 class <- "wfo"
 matches <- "all"	
 acc <- 0.9					# High match threshold
 
 response <- tnrs_request(url=url, mode=mode, matches=matches, 
-	source=sources, class=class, acc=acc, data= data.small	)
+	source=sources, class=class, acc=acc, data= data	)
 if ( colnames(response)[1]=="error" ) {
 	print( response )
 } else {
@@ -352,13 +383,13 @@ if ( colnames(response)[1]=="error" ) {
 		as.numeric(response$Overall_score), FUN=specify_decimal, k=2
 		))
 	results_cols <- c(results_cols_basic,
-		 c("Overall_score_order", "Highertaxa_score_order", "Warnings")
+		 c("Taxonomic_status", "Overall_score_order", "Highertaxa_score_order", "Warnings")
 	)
 	print( response[ , results_cols ]	)
 }
 
 #################################
-# Example 5: Parse mode
+# Example 4: Parse mode
 #################################
 
 # Clear existing variables
@@ -379,7 +410,7 @@ if ( colnames(response)[1]=="error" ) {
 }
 
 #################################
-# Example 5: TNRS data dictionary
+# Example 4: TNRS results data dictionary
 #################################
 
 # Available classifications

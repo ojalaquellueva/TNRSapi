@@ -15,7 +15,7 @@
 # 
 # This demo can be run as a script. Usage (*=default value; do not include in command):
 #
-#	./tnrs_api_example2.sh [-q|--quiet] [-v|--verbose] 
+#	tnrsapi.sh [-q|--quiet] [-v|--verbose] 
 #		[-f /absolute/path/and/inputfilename.csv]
 #		[-o /absolute/path/and/outputfilename.csv]
 #		[-u tnrs_api_url]
@@ -23,6 +23,7 @@
 #		[-s|--sources taxonomic,sources,comma,delimited]
 #		[-c|--class familyclassificationsourcename]
 #		[-a|--allmatches]
+#		[-k|--keep_files]
 #
 # Defaults:
 #	* Minimal screen echo (input, output only)
@@ -57,11 +58,14 @@ datadir="."
 # Content is created on the fly (see Main, below) and saved to this file
 # Results file is name automatically (see Main)
 # Over-ridden by file path and name supplied with -f option
-f_in_base="partial_match_bug_test_with_id"
+f_in_base="TNRS_test_names"
 
-# TNRS API instance (base url)
-# Over-ridden by command line option -f
-URL="https://tnrsapi.xyz/tnrs_api.php"
+# TNRS API endpoint (base url)
+
+# Do NOT include trailing slash or path or 
+# "tnrs_api.php"; both will be added
+# Over-ridden by command line option -u
+URL="https://tnrsapi.xyz"
 
 # API mode 
 # parse|resolve
@@ -69,7 +73,7 @@ URL="https://tnrsapi.xyz/tnrs_api.php"
 MODE="resolve"
 
 # Remaining API parameters apply to MODE="resolve" only
-# Over-ridden by values supplied with command-line options -s, -c and -m
+# Over-ridden by command-line options -s, -c and -a
 SOURCES="wfo,wcvp"
 CLASS="wfo"
 MATCHES="best"
@@ -85,6 +89,12 @@ verbose="f"
 # Over-ridden by command line option -q
 # Over-rides option -v
 quiet="f"
+
+# Remove input & output files from filesystem when done? (t|f)
+# Note that input file is *never* removed if prepare_f_in="f", 
+# under the assumption that the input file is user-prepared data
+# Over-ridden by command line option -k
+f_rm="t"
 
 ##################################
 # Get command line options
@@ -116,10 +126,21 @@ while [ "$1" != "" ]; do
                                 ;;
         -a | --all )       		MATCHES="all"
                             	;;
+        -k | --keep_files )  	f_rm="f"
+                            	;;
          * )                     echo "invalid option: $1 ($local)"; exit 1
     esac
     shift
 done
+
+# ##################################
+# # Validate options
+# ##################################
+# 
+# # Check api mode
+# if [[ $MODE != "resolve" ]] && [[ $MODE != "parse" ]]; then
+# 	echo "ERROR: Invalid value '"$MODE"' for option 'm|mode'"; exit 1
+# fi
 
 if [ "$quiet" == "t" ]; then
 	verbose="f"
@@ -176,22 +197,16 @@ f_out_json="${datadir}/${f_out_base}.json"
 # Generate input file, if requested
 #
 
-# Load example set of test names
 # This step over-ridden if -f option supplied via command line
-# Note: final EOT *must* be flush with left margin!
+# Note: final heredoc EOT must be flush with left margin!
 if [ "$prepare_f_in" == "t" ]; then
 	cat << EOT > $f_in
 id,species
-1,"Connarus venezuelanus"
-2,"Connarus venezuelensis"
-3,"Croton antisyphiliticus"
-4,"Croton antisiphyllitius"
-5,"Connarus sp.1"
-6,"Connarus"
-7,"Connaraceae Connarus absurdus"
-8,"Connarus absurdus"
-9,"Connaraceae Badgenus badspecies"
-10,"Rosaceae Badgenus badspecies"
+1,"Andropogon gerardii"
+2,"Andropogon gerardi"
+3,"Cephaelis elata"
+4,"Pinus pondersa Lawson"
+5,"Carnagia gigantea"
 EOT
 fi
 
@@ -216,8 +231,11 @@ fi
 data=$(csvjson "$f_in")
 req_json='{"opts":'$opts',"data":'$data'}'
 
+# Compose the full api url
+urlfull="${URL}/tnrs_api.php"
 
 if [ "$quiet" != "t" ]; then
+	echo " "
 	echo "Names submitted:"
 	#cat $f_in
 	csvcut "$f_in" | csvlook
@@ -225,7 +243,11 @@ if [ "$quiet" != "t" ]; then
 fi
 
 if [ "$verbose" == "t" ]; then
-	echo "Raw data file: '${f_in}'):"
+	
+	if [ "$prepare_f_in" == "t" ]; then
+		echo "Raw data file: '${f_in}'):"
+	fi
+	
 	echo "Raw data as JSON (\$data):"
 	echo "$data"
 	echo " "
@@ -242,8 +264,10 @@ fi
 
 if [ "$quiet" != "t" ]; then
 	echo "Processing with TNRS API @ '${URL}'"
+	echo "Full URL: '${urlfull}'"
 	echo " "
 fi
+
 
 # Send API request and save response
 resp_json=$(curl "${opt_quiet}" -X POST \
@@ -251,12 +275,16 @@ resp_json=$(curl "${opt_quiet}" -X POST \
   -H "Accept: application/json" \
   -H "charset: UTF-8" \
   -d "$req_json" \
-  "$URL" \
+  "$urlfull" \
   )
 
 #
 # Save response JSON to CSV file
 #
+
+# Cumbersome jq method
+# echo "$resp_json" | jq -r '(map(keys) | add | unique) as $cols | map(. as $row | $cols | map($row[.])) as $rows | $cols, $rows[] | @csv' > $f_out
+#partial_match_bug_test_with_id_parsed2.csv
 
 # in2csv (csvkit): simple and preserves column order
 echo "$resp_json" > $f_out_json
@@ -265,11 +293,13 @@ in2csv $f_out_json > $f_out
 if [ "$quiet" != "t" ]; then
 	if [ "$MODE" == "resolve" ]; then
 		echo "Name resolution results:"
-		csvcut -c Name_submitted,Name_matched,Overall_score,Taxonomic_status,Accepted_name 		"$f_out" | csvlook 
+		csvcut -c Name_submitted,Name_matched,Overall_score,Taxonomic_status,Accepted_name,Accepted_name_author,Source 		"$f_out" | csvlook 
 	elif [ "$MODE" == "parse" ]; then
 		echo "Name parsing results:"
+# 		csvcut -c Name_submitted,Family,Genus,Specific_epithet,Infraspecific_rank,Infraspecific_epithet,Infraspecific_rank_2,Infraspecific_epithet_2,Author,Annotations,Unmatched_terms "$f_out" | csvlook 
 		csvsql --query "select Name_submitted, Family, Genus, Specific_epithet as Species, Infraspecific_rank as rank, Infraspecific_epithet as infraspecific, Author, Annotations, Unmatched_terms as unmatched from '${f_out_base}'" "$f_out" | csvlook
 	fi
+	echo " "
 fi
 
 if [ "$verbose" == "t" ]; then
@@ -285,6 +315,13 @@ if [ "$verbose" == "t" ]; then
 	echo " "
 fi
 
-rm $f_out_json
+if [ "$f_rm" == "t" ]; then
 
+	if [ "$prepare_f_in" == "t" ]; then
+		rm $f_in
+	fi
+
+	rm $f_out
+	rm $f_out_json
+fi
 

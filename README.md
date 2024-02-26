@@ -156,22 +156,60 @@ The API accepts the following TNRS options, which must be converted to JSON and 
 <a name="examples"></a>
 ## Example scripts
 
-#### PHP
-
-Example syntax for interacting with API using php\_curl is given in `tnrs_api_example.php`. To run the test script:
-
-```
-php tnrs_api_example.php
-```
-* Adjust parameters as desired in file `params.php`
-* Also see API parameters section at start of `tnrs_api_example.php`
-* For TNRS options and defaults, see `params.php`
-* Make sure that input file (`tnrs_testfile.csv`) is available in `$DATADIR` (as set in `params.php`)
+All example scripts are in the `example_scripts/` subdirectory.
 
 #### R
 
-* See example script `tnrs_api_example.R`. 
-* Make sure that input file (`tnrs_testfile.csv`) is available in the same directory as the R script, or adjust file path in the R code.
+* `tnrs_api_example.R` demonstrates the individual components needed to build calls to the TNRS API from scratch
+* `tnrs_api_example2.R` demonstrates a more efficient function-based approach to calling the TNRS API
+
+#### Linux shell (bash)
+
+* `tnrsapi.sh` is a standalone bash executable for calling the TNRS API. 
+* Used without options, it will submit a small set of example names (provided internally by the script) using the current production TNRS API at tnrsapi.xyz. Results are display in the terminal without saving to the filesystem.
+* It also accepts command line options that can be used to set the input and output files (i.e., save to filesystem), the API endpoint, and most standard TNRS API options, such as taxonomic sources, best match vs. all matches, etc.
+* Currently only modes "resolve" and "parse" are supported
+
+##### Usage:
+
+```
+#	tnrsapi.sh [-q|--quiet] [-v|--verbose] 
+#		[-f </absolute/path/and/inputfilename.csv>]
+#		[-o </absolute/path/and/outputfilename.csv>]
+#		[-u <tnrs_api_url>]
+#		[-m|--mode {resolve|parse}]
+#		[-s|--sources <taxonomic,sources,comma,delimited>]
+#		[-c|--class <familyclassificationsourcename>]
+#		[-a|--allmatches]
+#		[-k|--keep_files]
+```
+
+##### Options:
+* All arguments are optional
+
+Option | Purpose | Followed by value | Default | Notes
+------ | ------- | -------------- | ------- | -----
+-q  | quiet | [none] | abbreviated input/output echo | 
+-v  | verbose | [none] | abbreviated input/output echo |
+-f  | input file | file path and name | nothing saved | 
+-o  | output file | file path and name | nothing saved | 
+-u  | endpoint url | TNRS API endpoint url |  https://tnrsapi.xyz | Omit "/tnrs_api.php" 
+-m  | api mode | resolve|parse | resolve | other API options not currently supported
+-s  | taxonomic sources | One or more of: wfo,wcvp,cact | wfo | Available sources may change
+-c  | family classification source | One of: wfo,wcvp | wfo | Available source may change
+-a  | all matches | [none] | Best match only if omitted | 
+-k  | keep files | [none] | nothing saved if omitted | Writes both input and output as CSV files
+
+##### Example:
+* The example below specific input and output files, taxonomic sources wcvp and cact, all matches and runs in verbose mode
+
+```
+tnrsapi.sh -f /home/boyle/tnrs/data/example_names.csv -o /home/boyle/tnrs/data/example_names_resolved.csv -a -s wcvp,cact -v
+```
+##### Installation:
+* Run from same directory as script only: `./tnrsapi.sh`
+* Place in executable directory of your choice and include path in environment to run from anywhere
+
 
 <a name="related"></a>
 ## Related applications
