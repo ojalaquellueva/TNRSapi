@@ -206,11 +206,6 @@ if ($err) goto err;
 // continue processing tnrs_batch request
 ///////////////////////////////////////////
 
-// 
-// $data=$input_array['data'];
-// echo "data='$data'    ";
-// 
-
 if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 	// tnrs_batch (no indent)
 	
@@ -310,7 +305,7 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 	///////////////////////////////////
 
 	$data_dir_tmp_full = $data_dir_tmp . "/";
-	// Form the final command calling the parallel execution controller
+	// Form the final command
 	$cmd = $BATCH_DIR . "controller.pl $opt_mode $opt_matches -in '$file_tmp'  -out '$results_file' -sources '$sources' -class $class -nbatch $NBATCH -d t ";
 
 	// Execute the tnrs_batch command
@@ -483,89 +478,8 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 	}			// END if ( $mode != "parse" ) 
 	
 	$results_array = fix_keys($results_array);	// Fix named keys screwed up by PHP
-
-} else if ( $mode=='syn' ) {	// CONTINUE mode_if 
-	// Retrieve synonyms for name submitted according to source submitted
-	// For now, only accepts 1 name + 1 source per request
-	// Will add batch processing later
-	// Processing separately for now, but consider merging with 
-	// modes parse and resolve. Much similar code
-	
-	///////////////////////////////////////////
-	// Extract & validate data
-	///////////////////////////////////////////
-
-	// Get data from JSON
-	if ( !( $data_arr = isset($input_array['data'])?$input_array['data']:false ) ) {
-		$err_msg="ERROR: No data (element 'data') in JSON request";	
-		$err_code=400; goto err;
-	}
-
-	# Check payload size
-	# Only 1 row currently allowed
-	$rows = count($data_arr);
-	if ( $rows>1 ) {
-		$err_msg="ERROR: $rows rows exceeds current limit of 1 per request";	
-		$err_code=413;	# 413 Payload Too Large
-		goto err; 
-	}
-
-	# Validate data array structure
-	# Should have 1 of exactly 2 elements (ID, nameWithAuthor)
-	$rows=0;
-	foreach ($data_arr as $row) {
-		$rows++;
-		$values=0;
-		foreach($row as $value) $values++;
-		if ($values!= 2) {
-			$err_msg="ERROR: Data has wrong number of columns, should be exactly 2";
-			$err_code=400; goto err;
-		}
-	}
-	if ($rows==0) {
-		$err_msg="ERROR: No data rows!"; $err_code=400; goto err; 
-	}
-	
-	// Extract name and source
-	//$array = array_values($data_arr);
-	$accname = $data_arr[0][1];
-	$src = $sources;
-	
-	// Form the SQL
-	$sql="
-	SELECT acc.nameID AS acc_nameID,
-	acc.scientificNameWithAuthor AS acc_scientificNameWithAuthor, 
-	acc.sourceName AS acc_sourceName, acc.nameSourceUrl AS acc_nameSourceUrl,
-	n.nameID AS syn_nameID, n.scientificNameWithAuthor AS syn_scientificNameWithAuthor, 
-	syn.synonymID, syn.acceptance AS taxonomicStatus, s.sourceName as syn_sourceName,
-	ns.nameSourceUrl AS syn_nameSourceUrl
-	FROM name n JOIN synonym syn JOIN source s
-	ON n.nameID=syn.nameID AND syn.sourceID=s.sourceID
-	JOIN name_source ns
-	ON n.nameID=ns.nameID AND s.sourceID=ns.sourceID
-	JOIN (
-	SELECT n.nameID, n.scientificNameWithAuthor, 
-	syn.synonymID, syn.acceptance AS taxonomicStatus, s.sourceName,
-	ns.nameSourceUrl
-	FROM name n JOIN synonym syn JOIN source s
-	ON n.nameID=syn.nameID AND syn.sourceID=s.sourceID
-	JOIN name_source ns
-	ON n.nameID=ns.nameID AND s.sourceID=ns.sourceID
-	WHERE scientificNameWithAuthor='$accname'
-	AND s.sourceName='$src'
-	) AS acc
-	WHERE s.sourceName='$src'
-	AND syn.acceptedNameID=acc.nameID
-	;
-	";
-
-	//echo "accname='$accname', src='$src'   ";
-
-	// Run the query and save results as $results_array
-	include("qy_db_sec.php"); 
-
 } else {	// CONTINUE mode_if 
-	// Metadata requests
+	// Metadaa requests
 
 	if ( $mode=="meta" ) { 
 /* 

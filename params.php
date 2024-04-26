@@ -44,7 +44,8 @@ $TNRS_MODES = array(
 "classifications",
 "collaborators",
 "logos",
-"dd"
+"dd",
+"syn"
 );
 
 // Database-version specific parameters for 
