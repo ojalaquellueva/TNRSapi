@@ -16,6 +16,23 @@ $mode_bak = $opt_arr['mode'];
 // TNRS options
 /////////////////////////////////////////////
 
+// Processing mode
+if (array_key_exists('mode', $opt_arr)) {
+	$mode = $opt_arr['mode'];
+	
+	if ( trim($mode) == "" ) {
+		$mode = $TNRS_DEF_MODE;
+	} else {
+		$valid = in_array($mode, $TNRS_MODES);
+		if ( $valid === false ) {
+			$err_msg="ERROR: Invalid option '$mode' for 'mode'"; 
+			$err_code=400; $err=true;
+		}
+	}
+} else {
+	$mode = $TNRS_DEF_MODE;
+}
+
 // Taxonomic sources
 if (array_key_exists('sources', $opt_arr)) {
 	$sources = $opt_arr['sources'];
@@ -31,7 +48,12 @@ if (array_key_exists('sources', $opt_arr)) {
 		}
 	}
 } else {
-	$sources = $TNRS_DEF_SOURCES;
+	if ( $mode=='syn' ) {
+		$err_msg="ERROR: option 'sources' missing, required for mode='syn'"; 
+		$err_code=400; $err=true;
+	} else {
+		$sources = $TNRS_DEF_SOURCES;
+	}
 }
 
 // Classification
@@ -48,23 +70,6 @@ if (array_key_exists('class', $opt_arr)) {
 	}
 } else {
 	$class = $TNRS_DEF_CLASSIFICATION;
-}
-
-// Processing mode
-if (array_key_exists('mode', $opt_arr)) {
-	$mode = $opt_arr['mode'];
-	
-	if ( trim($mode) == "" ) {
-		$mode = $TNRS_DEF_MODE;
-	} else {
-		$valid = in_array($mode, $TNRS_MODES);
-		if ( $valid === false ) {
-			$err_msg="ERROR: Invalid option '$mode' for 'mode'"; 
-			$err_code=400; $err=true;
-		}
-	}
-} else {
-	$mode = $TNRS_DEF_MODE;
 }
 
 // Constain matches by higher taxonomy

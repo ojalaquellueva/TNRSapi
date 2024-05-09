@@ -140,7 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 	// Send pre-flight response and quit
 	//header("Access-Control-Allow-Origin: http://localhost:3000");	// Dev
 	header("Access-Control-Allow-Origin: *"); // Production
-	header("Access-Control-Allow-Methods: POST, OPTIONS");
+	header("Access-Control-Allow-Methods: POST, OPTIONS	");
 	header("Access-Control-Allow-Headers: Content-type");
 	header("Access-Control-Max-Age: 86400");
 	exit;
@@ -211,7 +211,7 @@ if ($err) goto err;
 // echo "data='$data'    ";
 // 
 
-if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
+if ( $mode=="parse" || $mode=="resolve" || $mode=='syn' || $mode=="" ) { // BEGIN mode_if
 	// tnrs_batch (no indent)
 	
 	///////////////////////////////////////////
@@ -226,10 +226,18 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 
 	# Check payload size
 	$rows = count($data_arr);
-	if ( $rows>$MAX_ROWS && $MAX_ROWS>0 ) {
-		$err_msg="ERROR: Requested $rows rows exceeds $MAX_ROWS row limit";	
-		$err_code=413;	# 413 Payload Too Large
-		goto err; 
+	if ( $mode=='syn' ) {
+		if ( $rows>1 ) {
+			$err_msg="ERROR: $rows rows exceeds limit of 1 for request 'syn'";	
+			$err_code=413;	# 413 Payload Too Large
+			goto err; 
+		}
+	} else {
+		if ( $rows>$MAX_ROWS && $MAX_ROWS>0 ) {
+			$err_msg="ERROR: Requested $rows rows exceeds $MAX_ROWS row limit";	
+			$err_code=413;	# 413 Payload Too Large
+			goto err; 
+		}
 	}
 
 	# Validate data array structure
@@ -268,9 +276,19 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 	} else {
 		$opt_matches = ""; 				// Returns best match only by default
 	}
-	# Parse-only over-rides matches
-	if ( $mode == "parse" ) {
+	# Parse-only or syn over-ride matches
+	if ( $mode == "parse" || $mode=='syn' ) {
 		$opt_matches = ""; 		
+	}
+	
+	# Check only one source if this is a 'syn' call
+	if ( $mode=='syn' ) {
+		$comma = strpos($sources, ',');
+
+		if ($comma !== false) {
+			$err_msg="ERROR: too many sources submitted, only one allowed for mode='syn'";	
+			$err_code=400; goto err;
+		}
 	}
 
 	///////////////////////////////////////////
@@ -484,85 +502,77 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=="" ) { 	// BEGIN mode_if
 	
 	$results_array = fix_keys($results_array);	// Fix named keys screwed up by PHP
 
-} else if ( $mode=='syn' ) {	// CONTINUE mode_if 
-	// Retrieve synonyms for name submitted according to source submitted
-	// For now, only accepts 1 name + 1 source per request
-	// Will add batch processing later
-	// Processing separately for now, but consider merging with 
-	// modes parse and resolve. Much similar code
-	
-	///////////////////////////////////////////
-	// Extract & validate data
-	///////////////////////////////////////////
+	if ( $mode=='syn' ) {	// BEGIN synonym lookup
+		// Retrieve synonyms of accepted name, according to source submitted
 
-	// Get data from JSON
-	if ( !( $data_arr = isset($input_array['data'])?$input_array['data']:false ) ) {
-		$err_msg="ERROR: No data (element 'data') in JSON request";	
-		$err_code=400; goto err;
-	}
+		///////////////////////////////////////////
+		// Extract accepted name from TNRS results
+		///////////////////////////////////////////
 
-	# Check payload size
-	# Only 1 row currently allowed
-	$rows = count($data_arr);
-	if ( $rows>1 ) {
-		$err_msg="ERROR: $rows rows exceeds current limit of 1 per request";	
-		$err_code=413;	# 413 Payload Too Large
-		goto err; 
-	}
-
-	# Validate data array structure
-	# Should have 1 of exactly 2 elements (ID, nameWithAuthor)
-	$rows=0;
-	foreach ($data_arr as $row) {
-		$rows++;
-		$values=0;
-		foreach($row as $value) $values++;
-		if ($values!= 2) {
-			$err_msg="ERROR: Data has wrong number of columns, should be exactly 2";
+		// Get source
+		$src = $sources;	// Should only be one
+		
+		// Extract key TNRS results fields
+		$name_submitted = $results_array[0]['Name_submitted'];
+		$name_matched = $results_array[0]['Name_matched'];
+		$name_matched_author = $results_array[0]['Canonical_author'];
+		$name_matched_status = $results_array[0]['Taxonomic_status'];		
+		$accname = $results_array[0]['Accepted_name'];
+		$accauth = $results_array[0]['Accepted_name_author'];
+		
+		# Form the concatenated name plus author for matched and accepted names
+		$matched_nameauth = trim( $name_matched . ' ' . $name_matched_author );		
+		$acc_nameauth = trim( $accname . ' ' . $accauth );
+		
+		# Handle exceptions
+		if ( $name_matched==$no_match_message ) {
+			# No match found
+			$err_msg="ERROR: No match found for submitted name '$name_submitted' using source '$src'";
+			$err_code=400; goto err;
+		} else if ( trim( $accname )=="" ) {
+			# No accepted name
+			$err_msg="ERROR: No accepted name found for submitted name '$name_submitted' using source '$src'";
 			$err_code=400; goto err;
 		}
-	}
-	if ($rows==0) {
-		$err_msg="ERROR: No data rows!"; $err_code=400; goto err; 
-	}
+		
+		// Form the SQL
+		// Include submitted name, matched name and matched name taxonomic status
+		$sql="
+		SELECT '$name_submitted' AS submitted_name, 
+		'$matched_nameauth' AS matched_nameWithAuthor,
+		'$name_matched_status' AS matched_taxonomicStatus,
+		acc.nameID AS accepted_nameID,
+		acc.scientificNameWithAuthor AS accepted_nameWithAuthor, 
+		acc.sourceName AS accepted_source, acc.nameSourceUrl AS accepted_nameUrl,
+		n.nameID AS syn_nameID, n.scientificNameWithAuthor AS syn_nameWithAuthor, 
+		syn.acceptance AS syn_taxonomicStatus, s.sourceName as syn_source,
+		ns.nameSourceUrl AS syn_nameUrl
+		FROM name n JOIN synonym syn JOIN source s
+		ON n.nameID=syn.nameID AND syn.sourceID=s.sourceID
+		JOIN name_source ns
+		ON n.nameID=ns.nameID AND s.sourceID=ns.sourceID
+		JOIN (
+		SELECT n.nameID, n.scientificNameWithAuthor, 
+		syn.synonymID, syn.acceptance AS taxonomicStatus, s.sourceName,
+		ns.nameSourceUrl
+		FROM name n JOIN synonym syn JOIN source s
+		ON n.nameID=syn.nameID AND syn.sourceID=s.sourceID
+		JOIN name_source ns
+		ON n.nameID=ns.nameID AND s.sourceID=ns.sourceID
+		WHERE scientificNameWithAuthor='$acc_nameauth'
+		AND s.sourceName='$src'
+		) AS acc
+		WHERE s.sourceName='$src'
+		AND syn.acceptedNameID=acc.nameID
+		;
+		";
 	
-	// Extract name and source
-	//$array = array_values($data_arr);
-	$accname = $data_arr[0][1];
-	$src = $sources;
+		//echo "accname='$accname', src='$src'   ";
 	
-	// Form the SQL
-	$sql="
-	SELECT acc.nameID AS acc_nameID,
-	acc.scientificNameWithAuthor AS acc_scientificNameWithAuthor, 
-	acc.sourceName AS acc_sourceName, acc.nameSourceUrl AS acc_nameSourceUrl,
-	n.nameID AS syn_nameID, n.scientificNameWithAuthor AS syn_scientificNameWithAuthor, 
-	syn.synonymID, syn.acceptance AS taxonomicStatus, s.sourceName as syn_sourceName,
-	ns.nameSourceUrl AS syn_nameSourceUrl
-	FROM name n JOIN synonym syn JOIN source s
-	ON n.nameID=syn.nameID AND syn.sourceID=s.sourceID
-	JOIN name_source ns
-	ON n.nameID=ns.nameID AND s.sourceID=ns.sourceID
-	JOIN (
-	SELECT n.nameID, n.scientificNameWithAuthor, 
-	syn.synonymID, syn.acceptance AS taxonomicStatus, s.sourceName,
-	ns.nameSourceUrl
-	FROM name n JOIN synonym syn JOIN source s
-	ON n.nameID=syn.nameID AND syn.sourceID=s.sourceID
-	JOIN name_source ns
-	ON n.nameID=ns.nameID AND s.sourceID=ns.sourceID
-	WHERE scientificNameWithAuthor='$accname'
-	AND s.sourceName='$src'
-	) AS acc
-	WHERE s.sourceName='$src'
-	AND syn.acceptedNameID=acc.nameID
-	;
-	";
-
-	//echo "accname='$accname', src='$src'   ";
-
-	// Run the query and save results as $results_array
-	include("qy_db_sec.php"); 
+		// Run the query and return results as new $results_array
+		include("qy_db.php"); 
+	
+	}	// END synonym lookup
 
 } else {	// CONTINUE mode_if 
 	// Metadata requests
