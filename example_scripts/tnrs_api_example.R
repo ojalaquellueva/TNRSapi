@@ -136,8 +136,9 @@ results.t <- as.data.frame( t( results[,1:ncol(results)] ) )
 results.t[,3,drop =FALSE]
 
 # Display just the main results fields
+max.rows <- as.integer( min(nrow(results), 10) )
 results $match.score <- format(round(as.numeric(results $Overall_score),2), nsmall=2)
-results[ 1:10, c('Name_submitted', 'match.score', 'Name_matched', 'Taxonomic_status', 
+results[ 1:max.rows, c('Name_submitted', 'match.score', 'Name_matched', 'Taxonomic_status', 
 	'Accepted_name', 'Unmatched_terms')
 	]
 
@@ -183,13 +184,14 @@ results <- as.data.frame(results_raw)
 head(results, 10)
 
 # Just compare name submitted, name matched and final accepted name
-results $match.score <- format(round(as.numeric(results $Overall_score),2), nsmall=2)
+max.rows <- as.integer( min(nrow(results), 10) )
+results$match.score <- format(round(as.numeric(results $Overall_score),2), nsmall=2)
 results[ , c('ID', 'Name_submitted', 'match.score', 'Name_matched', 
 	'Taxonomic_status', 'Accepted_name')
 	]
 
 results $match.score <- format(round(as.numeric(results $Overall_score),2), nsmall=2)
-results[1:10, c('Name_submitted', 'match.score', 'Name_matched', 'Taxonomic_status', 
+results[1:max.rows, c('Name_submitted', 'match.score', 'Name_matched', 'Taxonomic_status', 
 	'Accepted_name', 'Unmatched_terms')
 	]
 	
@@ -284,6 +286,70 @@ head(results, 10)
 # Display header and two rows vertically
 results.t <- as.data.frame( t( results[,1:ncol(results)] ) )
 results.t[,2:3,drop =FALSE]
+
+#################################
+# Example 6: Get synonyms 
+# Retrieves all synonyms of accepted name according to tax0nomic source
+#################################
+
+# Clear response variables
+suppressWarnings( rm( list = Filter( exists, c(response_vars ) ) ) )
+
+# All we need to do is reset option mode.
+# all other options will be ignored
+mode <- "syn"		
+
+# Set the name and taxonomic source you want to check
+# Name submitted doesn't need to be an accepted name as the
+# TNRS will resolve it to an accepted name
+nameSubmitted ="Palicourea elata"	# Name to check (just one)
+sources <- "wcvp"	                # Taxonomic source (just one)
+
+# # More test names
+# # Submitted name is a synonym
+# nameSubmitted ="Echinocactus texensis"
+# sources <- "cact"
+# 
+# # No match found
+# nameSubmitted ="Junkus unresolvicus"
+# sources <- "cact"
+# 
+# # Matches, but no accepted name
+# nameSubmitted='Solanaceae Solanum bipatens Dunal'
+# sources='wfo'
+
+# Data same as for mode 'resolve', but only one name allowed
+data <- data.frame("ID"=c(1), "Name_submitted"=c(nameSubmitted))
+data_json <- jsonlite::toJSON(unname(data))
+
+# Prepare the options
+# Note that only mode and sources needed for this call
+opts <- data.frame( c(mode), c(sources) )
+names(opts) <- c("mode", "sources" )
+opts_json <-  jsonlite::toJSON(opts)
+opts_json <- gsub('\\[','',opts_json)
+opts_json <- gsub('\\]','',opts_json)
+
+# Combine the options and data into single JSON object
+input_json <- paste0('{"opts":', opts_json, ',"data":', data_json, '}' )
+
+# Construct the request
+headers <- list('Accept' = 'application/json', 'Content-Type' = 'application/json', 'charset' = 'UTF-8')
+
+# Send the API request
+results_json <- POST(url = url,
+                     add_headers('Content-Type' = 'application/json'),
+                     add_headers('Accept' = 'application/json'),
+                     add_headers('charset' = 'UTF-8'),
+                     body = input_json,
+                     encode = "json")
+
+# Convert JSON results to a data frame
+results_raw <- fromJSON(rawToChar(results_json$content)) 
+results <- as.data.frame(results_raw)
+
+# Inspect the results
+head(results, 10)
 
 #################################
 # Example 5: Get metadata for current 
