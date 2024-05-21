@@ -519,7 +519,6 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=='syn' || $mode=="" ) { // BEGI
 		$name_matched_status = $results_array[0]['Taxonomic_status'];		
 		$accname = $results_array[0]['Accepted_name'];
 		$accauth = $results_array[0]['Accepted_name_author'];
-		$acc_url = $results_array[0]['Accepted_name_url'];
 		
 		# Form the concatenated name plus author for matched and accepted names
 		$matched_nameauth = trim( $name_matched . ' ' . $name_matched_author );		
@@ -539,27 +538,15 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=='syn' || $mode=="" ) { // BEGI
 		// Form the SQL
 		// Include submitted name, matched name and matched name taxonomic status
 		$sql="
-		SELECT DISTINCT 
-		'$name_submitted' AS submitted_name, 
+		SELECT '$name_submitted' AS submitted_name, 
 		'$matched_nameauth' AS matched_nameWithAuthor,
 		'$name_matched_status' AS matched_taxonomicStatus,
-		acc_scientificNameWithAuthor AS accepted_nameWithAuthor, 
-		acc_sourceName AS accepted_source, 
-		acc_nameSourceUrl AS accepted_nameUrl,
-		syn_scientificNameWithAuthor AS syn_nameWithAuthor, 
-		taxonomicStatus AS syn_taxonomicStatus, 
-		syn_sourceName AS syn_source,
-		syn_nameSourceUrl AS syn_nameUrl,
-		directSynOfNameWithAuthor AS accepted_nameWithAuthor_exact
-		FROM (
-		-- Synonyms of accepted subspecies/varieties of accepted name
-		SELECT acc.nameID AS acc_nameID,
-		acc.scientificNameWithAuthor AS acc_scientificNameWithAuthor, 
-		acc.sourceName AS acc_sourceName, acc.nameSourceUrl AS acc_nameSourceUrl,
-		n.nameID AS syn_nameID, n.scientificNameWithAuthor AS syn_scientificNameWithAuthor, 
-		syn.acceptance AS taxonomicStatus, s.sourceName as syn_sourceName,
-		ns.nameSourceUrl AS syn_nameSourceUrl,
-		acc.scientificNameWithAuthor AS directSynOfNameWithAuthor
+		acc.nameID AS accepted_nameID,
+		acc.scientificNameWithAuthor AS accepted_nameWithAuthor, 
+		acc.sourceName AS accepted_source, acc.nameSourceUrl AS accepted_nameUrl,
+		n.nameID AS syn_nameID, n.scientificNameWithAuthor AS syn_nameWithAuthor, 
+		syn.acceptance AS syn_taxonomicStatus, s.sourceName as syn_source,
+		ns.nameSourceUrl AS syn_nameUrl
 		FROM name n JOIN synonym syn JOIN source s
 		ON n.nameID=syn.nameID AND syn.sourceID=s.sourceID
 		JOIN name_source ns
@@ -573,64 +560,17 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=='syn' || $mode=="" ) { // BEGI
 		JOIN name_source ns
 		ON n.nameID=ns.nameID AND s.sourceID=ns.sourceID
 		WHERE scientificNameWithAuthor='$acc_nameauth'
-		AND s.sourceName=@source
+		AND s.sourceName='$src'
 		) AS acc
 		WHERE s.sourceName='$src'
 		AND syn.acceptedNameID=acc.nameID
-		UNION ALL
-		-- Synonyms of accepted name
-		SELECT parent.nameID AS acc_nameID,
-		parent.scientificNameWithAuthor AS acc_scientificNameWithAuthor,
-		'$src' AS acc_sourceName, '$acc_url' AS acc_nameSourceUrl,
-		child.nameID AS syn_nameID, child.scientificNameWithAuthor AS syn_scientificNameWithAuthor,
-		syn.acceptance AS taxonomicStatus, 
-		'$src' AS syn_sourceName, nameSourceUrl AS syn_nameSourceUrl,
-		accChildName.scientificNameWithAuthor AS directSynOfNameWithAuthor
-		FROM classification c JOIN name parent ON c.parentNameID=parent.nameID 
-		JOIN name child ON c.nameID=child.nameID
-		JOIN source s ON c.sourceID=s.sourceID
-		JOIN name_source ns
-		ON child.nameID=ns.nameID AND s.sourceID=ns.sourceID
-		JOIN synonym syn ON c.nameID=syn.nameID AND c.sourceID=syn.sourceID
-		LEFT JOIN name AS accChildName ON syn.acceptedNameID=accChildName.nameID
-		JOIN classification c2 ON syn.acceptedNameID=c2.nameID
-		JOIN name AS accChildParentName ON accChildParentName.nameID=c2.parentNameID
-		WHERE parent.scientificNameWithAuthor='$acc_nameauth'
-		AND s.sourceName='$src'
-		AND (parent.nameID=accChildName.nameID OR parent.nameID=accChildParentName.nameID)
-		) a
-		ORDER BY submitted_name, syn_scientificNameWithAuthor, taxonomicStatus, accepted_nameWithAuthor_exact
 		;
 		";
-
-
+	
 		//echo "accname='$accname', src='$src'   ";
 	
 		// Run the query and return results as new $results_array
 		include("qy_db.php"); 
-		
-		// Handle empty response due to no synonyms
-		if ( count($results_array)==0 ) {
-			$sql="
-			SELECT 
-			'$name_submitted' AS submitted_name, 
-			'$matched_nameauth' AS matched_nameWithAuthor,
-			'$name_matched_status' AS matched_taxonomicStatus,
-			'$acc_nameauth' AS accepted_nameWithAuthor, 
-			'$src' AS accepted_source, 
-			'$acc_url' AS accepted_nameUrl,
-			'[No synonyms found]' AS syn_nameWithAuthor, 
-			'' AS syn_taxonomicStatus, 
-			'' AS syn_source,
-			'' AS syn_nameUrl,
-			'' AS accepted_nameWithAuthor_exact
-			;
-			";
-		
-			// Query again to generate single element $results_array containing 
-			// submitted, matched & accepted name + '[No synonyms found]'
-			include("qy_db.php"); 
-		}
 	
 	}	// END synonym lookup
 
