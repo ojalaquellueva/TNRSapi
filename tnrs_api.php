@@ -550,7 +550,7 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=='syn' || $mode=="" ) { // BEGI
 		taxonomicStatus AS syn_taxonomicStatus, 
 		syn_sourceName AS syn_source,
 		syn_nameSourceUrl AS syn_nameUrl,
-		directSynOfNameWithAuthor AS accepted_nameWithAuthor_exact
+		directSynOfNameWithAuthor AS accepted_nameWithAuthor_strict
 		FROM (
 		-- Synonyms of accepted subspecies/varieties of accepted name
 		SELECT acc.nameID AS acc_nameID,
