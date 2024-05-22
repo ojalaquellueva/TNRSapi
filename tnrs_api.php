@@ -599,7 +599,7 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=='syn' || $mode=="" ) { // BEGI
 		AND s.sourceName='$src'
 		AND (parent.nameID=accChildName.nameID OR parent.nameID=accChildParentName.nameID)
 		) a
-		ORDER BY submitted_name, syn_scientificNameWithAuthor, taxonomicStatus, accepted_nameWithAuthor_exact
+		ORDER BY submitted_name, syn_scientificNameWithAuthor, taxonomicStatus, accepted_nameWithAuthor_strict
 		;
 		";
 
@@ -623,7 +623,7 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=='syn' || $mode=="" ) { // BEGI
 			'' AS syn_taxonomicStatus, 
 			'' AS syn_source,
 			'' AS syn_nameUrl,
-			'' AS accepted_nameWithAuthor_exact
+			'' AS accepted_nameWithAuthor_strict
 			;
 			";
 		
