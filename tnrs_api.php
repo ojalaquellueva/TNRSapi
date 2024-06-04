@@ -661,7 +661,7 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=='syn' || $mode=="" ) { // BEGI
 			;
 			";
 		} else {
-			# New version, includes app_version
+			# New version, includes app_version and multiple rows
 			$sql="
 			SELECT app_version, 
 			db_version, 
@@ -669,6 +669,7 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=='syn' || $mode=="" ) { // BEGI
 			code_version, 
 			api_version
 			FROM meta
+			WHERE id=(SELECT MAX(id) FROM meta)
 			;
 			";
 		}	
@@ -713,9 +714,9 @@ if ( $mode=="parse" || $mode=="resolve" || $mode=='syn' || $mode=="" ) { // BEGI
 	} else if ( $mode=="dd" ) { 
 		// Retrieve output data dictionary
 		$sql="
-		SELECT col_name, ordinal_position, data_type, description
+		SELECT mode, col_name, ordinal_position, data_type, description
 		FROM dd_output
-		ORDER BY ordinal_position
+		ORDER BY mode, ordinal_position
 		;
 		";
 	} else {
